@@ -173,8 +173,10 @@ export default function ChatbotWidget() {
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('.chat-content')) return;
+    // Only allow dragging from the header area
+    if (!(e.target as HTMLElement).closest('.drag-handle')) return;
     
+    e.preventDefault();
     setIsDragging(true);
     dragRef.current = {
       startX: e.clientX,
@@ -238,7 +240,7 @@ export default function ChatbotWidget() {
       {isOpen && (
         <div className="absolute bottom-20 right-0 w-80 h-96 bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 overflow-hidden chat-content">
           {/* Chat Header */}
-          <div className="bg-gradient-to-r from-saffron-400 to-saffron-500 p-4 flex items-center justify-between text-white">
+          <div className="bg-gradient-to-r from-saffron-400 to-saffron-500 p-4 flex items-center justify-between text-white drag-handle cursor-move">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                 <i className="fas fa-robot text-sm"></i>
@@ -252,12 +254,15 @@ export default function ChatbotWidget() {
               <select 
                 value={currentLanguage}
                 onChange={(e) => handleLanguageChange(e.target.value as Language)}
-                className="bg-white/20 rounded-lg px-2 py-1 text-xs border-none outline-none cursor-pointer"
+                className="bg-white/20 rounded-lg px-2 py-1 text-xs border-none outline-none cursor-pointer text-white"
+                style={{
+                  color: 'white'
+                }}
                 data-testid="language-selector"
               >
-                <option value="english">🇬🇧 EN</option>
-                <option value="hindi">🇮🇳 HI</option>
-                <option value="marathi">🟠 MR</option>
+                <option value="english" style={{color: 'black'}}>🇬🇧 EN</option>
+                <option value="hindi" style={{color: 'black'}}>🇮🇳 HI</option>
+                <option value="marathi" style={{color: 'black'}}>🟠 MR</option>
               </select>
               <button 
                 onClick={() => setIsOpen(false)}
