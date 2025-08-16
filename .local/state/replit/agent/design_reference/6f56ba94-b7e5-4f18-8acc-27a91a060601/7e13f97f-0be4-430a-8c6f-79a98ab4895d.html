@@ -1,0 +1,507 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marathi Vidyalaya - Smart AI Tutor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        saffron: {
+                            50: '#FFF4E6',
+                            100: '#FFE5CC',
+                            200: '#FFCC99',
+                            300: '#FFB366',
+                            400: '#FF9933',
+                            500: '#FF8000',
+                            600: '#E6730D',
+                            700: '#CC661A',
+                            800: '#B35926',
+                            900: '#994D33'
+                        },
+                        forest: {
+                            50: '#E8F5E8',
+                            100: '#C3E6C3',
+                            200: '#9FD89F',
+                            300: '#7AC97A',
+                            400: '#56BB56',
+                            500: '#228B22',
+                            600: '#1F7B1F',
+                            700: '#1C6B1C',
+                            800: '#195B19',
+                            900: '#164B16'
+                        },
+                        cream: {
+                            50: '#FFFEF9',
+                            100: '#FFF8DC',
+                            200: '#FFF4C7',
+                            300: '#FFEFB1',
+                            400: '#FFEB9C',
+                            500: '#FFE686',
+                            600: '#E6CF79',
+                            700: '#CCB86C',
+                            800: '#B3A15F',
+                            900: '#998A52'
+                        },
+                        chalkboard: {
+                            50: '#F0F4F0',
+                            100: '#D9E5D9',
+                            200: '#B3CCB3',
+                            300: '#8CB38C',
+                            400: '#669966',
+                            500: '#2F4F2F',
+                            600: '#2A472A',
+                            700: '#253F25',
+                            800: '#203720',
+                            900: '#1B2F1B'
+                        }
+                    },
+                    fontFamily: {
+                        'poppins': ['Poppins', 'sans-serif'],
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-slow': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-gentle': 'bounce 1s infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    },
+                    backdropBlur: {
+                        xs: '2px',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-cream-100 to-cream-200 min-h-screen font-inter">
+    
+    <!-- Background Pattern -->
+    <div class="fixed inset-0 opacity-5 pointer-events-none">
+        <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="%23228B22" stroke-width="0.5"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)" /></svg>');"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="relative z-10 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-saffron-400 rounded-lg flex items-center justify-center shadow-lg">
+                    <i class="fas fa-graduation-cap text-white text-lg"></i>
+                </div>
+                <div class="text-chalkboard-500 font-poppins font-600 text-xl">Marathi Vidyalaya</div>
+            </div>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="#" class="text-chalkboard-600 hover:text-saffron-400 transition-colors duration-200 font-medium">About</a>
+                <a href="#" class="text-chalkboard-600 hover:text-saffron-400 transition-colors duration-200 font-medium">Courses</a>
+                <a href="#" class="text-chalkboard-600 hover:text-saffron-400 transition-colors duration-200 font-medium">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative z-10 pt-20 pb-32 px-6">
+        <div class="max-w-7xl mx-auto">
+            <!-- Hero Content -->
+            <div class="text-center mb-16">
+                <div class="inline-flex items-center px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-saffron-200 mb-6 shadow-sm">
+                    <i class="fas fa-sparkles text-saffron-400 mr-2"></i>
+                    <span class="text-chalkboard-600 font-medium text-sm">AI-Powered Learning</span>
+                </div>
+                
+                <h1 class="text-5xl md:text-7xl font-poppins font-700 text-chalkboard-500 mb-6 leading-tight">
+                    Marathi Vidyalaya
+                    <span class="block text-saffron-400 text-4xl md:text-5xl mt-2">Smart AI Tutor</span>
+                </h1>
+                
+                <p class="text-xl md:text-2xl text-chalkboard-400 mb-8 max-w-3xl mx-auto leading-relaxed">
+                    Ask your doubts in <span class="font-semibold text-saffron-500">English</span>, 
+                    <span class="font-semibold text-forest-500">Hindi</span>, or 
+                    <span class="font-semibold text-saffron-500">Marathi</span>
+                </p>
+
+                <!-- Language Examples -->
+                <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
+                    <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-cream-300 hover:shadow-xl transition-all duration-300">
+                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4 mx-auto">
+                            <span class="text-2xl">🇬🇧</span>
+                        </div>
+                        <h3 class="font-poppins font-600 text-chalkboard-500 mb-2">English</h3>
+                        <p class="text-sm text-chalkboard-400">"What is photosynthesis?"</p>
+                    </div>
+                    <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-cream-300 hover:shadow-xl transition-all duration-300">
+                        <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4 mx-auto">
+                            <span class="text-2xl">🇮🇳</span>
+                        </div>
+                        <h3 class="font-poppins font-600 text-chalkboard-500 mb-2">हिंदी</h3>
+                        <p class="text-sm text-chalkboard-400">"प्रकाश संश्लेषण क्या है?"</p>
+                    </div>
+                    <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-cream-300 hover:shadow-xl transition-all duration-300">
+                        <div class="w-12 h-12 bg-saffron-100 rounded-xl flex items-center justify-center mb-4 mx-auto">
+                            <span class="text-2xl">🟠</span>
+                        </div>
+                        <h3 class="font-poppins font-600 text-chalkboard-500 mb-2">मराठी</h3>
+                        <p class="text-sm text-chalkboard-400">"प्रकाशसंश्लेषण म्हणजे काय?"</p>
+                    </div>
+                </div>
+
+                <!-- CTA Section -->
+                <div class="text-center">
+                    <p class="text-chalkboard-400 mb-4">Click the chat widget to start learning!</p>
+                    <div class="flex items-center justify-center">
+                        <i class="fas fa-arrow-down text-saffron-400 text-2xl animate-bounce-gentle"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Grid -->
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <div class="text-center group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-saffron-400 to-saffron-500 rounded-2xl flex items-center justify-center mb-4 mx-auto shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-microphone text-white text-xl"></i>
+                    </div>
+                    <h3 class="font-poppins font-600 text-chalkboard-500 text-lg mb-2">Voice Input</h3>
+                    <p class="text-chalkboard-400 text-sm">Speak naturally in any language</p>
+                </div>
+                <div class="text-center group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-forest-400 to-forest-500 rounded-2xl flex items-center justify-center mb-4 mx-auto shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-brain text-white text-xl"></i>
+                    </div>
+                    <h3 class="font-poppins font-600 text-chalkboard-500 text-lg mb-2">AI Tutor</h3>
+                    <p class="text-chalkboard-400 text-sm">Intelligent responses for all subjects</p>
+                </div>
+                <div class="text-center group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-500 rounded-2xl flex items-center justify-center mb-4 mx-auto shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-language text-white text-xl"></i>
+                    </div>
+                    <h3 class="font-poppins font-600 text-chalkboard-500 text-lg mb-2">Multi-Language</h3>
+                    <p class="text-chalkboard-400 text-sm">Support for 3 languages</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Subject Areas -->
+    <section class="relative z-10 py-20 px-6 bg-white/40 backdrop-blur-sm">
+        <div class="max-w-7xl mx-auto">
+            <h2 class="text-3xl md:text-4xl font-poppins font-600 text-chalkboard-500 text-center mb-12">
+                Subjects We Cover
+            </h2>
+            <div class="grid md:grid-cols-4 gap-6">
+                <div class="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-cream-200 hover:shadow-xl transition-all duration-300 text-center">
+                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-calculator text-red-500"></i>
+                    </div>
+                    <h3 class="font-poppins font-500 text-chalkboard-500">Mathematics</h3>
+                </div>
+                <div class="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-cream-200 hover:shadow-xl transition-all duration-300 text-center">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-flask text-green-500"></i>
+                    </div>
+                    <h3 class="font-poppins font-500 text-chalkboard-500">Science</h3>
+                </div>
+                <div class="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-cream-200 hover:shadow-xl transition-all duration-300 text-center">
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-book text-purple-500"></i>
+                    </div>
+                    <h3 class="font-poppins font-500 text-chalkboard-500">Literature</h3>
+                </div>
+                <div class="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-cream-200 hover:shadow-xl transition-all duration-300 text-center">
+                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-globe text-yellow-500"></i>
+                    </div>
+                    <h3 class="font-poppins font-500 text-chalkboard-500">Geography</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="relative z-10 py-8 px-6 bg-chalkboard-500">
+        <div class="max-w-7xl mx-auto text-center">
+            <p class="text-cream-100 font-inter">Built with AI ❤️ for Marathi Students</p>
+        </div>
+    </footer>
+
+    <!-- @COMPONENT: FloatingChatbot [draggable, expandable, voice-enabled] -->
+    <!-- Floating Chatbot Widget -->
+    <div id="chatbot-container" class="fixed bottom-6 right-6 z-50">
+        <!-- Floating Button -->
+        <div id="chatbot-button" class="w-16 h-16 bg-gradient-to-br from-saffron-400 to-saffron-500 rounded-full shadow-2xl cursor-pointer flex items-center justify-center hover:scale-110 transition-all duration-300 animate-float">
+            <i class="fas fa-comments text-white text-xl"></i>
+            <div class="absolute -top-1 -right-1 w-6 h-6 bg-forest-400 rounded-full flex items-center justify-center">
+                <span class="text-white text-xs font-bold">AI</span>
+            </div>
+        </div>
+
+        <!-- Chat Window -->
+        <div id="chatbot-window" class="absolute bottom-20 right-0 w-80 h-96 bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 hidden overflow-hidden">
+            <!-- Chat Header -->
+            <div class="bg-gradient-to-r from-saffron-400 to-saffron-500 p-4 flex items-center justify-between text-white">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-robot text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-poppins font-600 text-sm">AI Tutor</h3>
+                        <p class="text-xs opacity-90">Ready to help!</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <!-- @STATE: currentLanguage:string = 'english' -->
+                    <select id="language-selector" class="bg-white/20 rounded-lg px-2 py-1 text-xs border-none outline-none cursor-pointer">
+                        <option value="english">🇬🇧 EN</option>
+                        <option value="hindi">🇮🇳 HI</option>
+                        <option value="marathi">🟠 MR</option>
+                    </select>
+                    <button id="close-chat" class="w-6 h-6 flex items-center justify-center hover:bg-white/20 rounded-full transition-colors">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Messages -->
+            <div id="chat-messages" class="flex-1 p-4 space-y-3 overflow-y-auto max-h-64 bg-gradient-to-b from-cream-50 to-white">
+                <!-- @MAP: messages.map(message => ( -->
+                <div class="flex items-start space-x-2">
+                    <div class="w-8 h-8 bg-saffron-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-robot text-saffron-500 text-xs"></i>
+                    </div>
+                    <div class="bg-white rounded-xl p-3 shadow-sm border border-cream-200 max-w-64">
+                        <p class="text-sm text-chalkboard-600" data-bind="message.text">Hello! I am your Tutor. How can I help you today?</p>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+
+            <!-- Chat Input -->
+            <div class="p-4 bg-white border-t border-cream-200">
+                <div class="flex items-center space-x-2">
+                    <div class="flex-1 relative">
+                        <input 
+                            type="text" 
+                            id="chat-input" 
+                            placeholder="Type your question..." 
+                            class="w-full px-4 py-2 rounded-xl border border-cream-300 focus:outline-none focus:ring-2 focus:ring-saffron-400 focus:border-transparent text-sm"
+                            data-mock="true"
+                        >
+                        <!-- @FUNCTIONALITY: Voice recording should show visual feedback and use Web Speech API -->
+                        <button id="voice-button" class="absolute right-2 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center hover:bg-cream-100 rounded-full transition-colors" data-event="click:startVoiceRecording">
+                            <i class="fas fa-microphone text-saffron-500 text-xs"></i>
+                        </button>
+                    </div>
+                    <button id="send-button" class="w-8 h-8 bg-saffron-400 hover:bg-saffron-500 rounded-full flex items-center justify-center transition-colors" data-event="click:sendMessage">
+                        <i class="fas fa-paper-plane text-white text-xs"></i>
+                    </button>
+                </div>
+                
+                <!-- Voice Recording Indicator -->
+                <div id="voice-indicator" class="hidden mt-2 flex items-center justify-center space-x-2 text-saffron-500">
+                    <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    <span class="text-xs">Listening...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: FloatingChatbot -->
+
+    <script>
+        (function() {
+            // Chatbot Widget Logic
+            const chatbotButton = document.getElementById('chatbot-button');
+            const chatbotWindow = document.getElementById('chatbot-window');
+            const chatbotContainer = document.getElementById('chatbot-container');
+            const closeChat = document.getElementById('close-chat');
+            const languageSelector = document.getElementById('language-selector');
+            const chatMessages = document.getElementById('chat-messages');
+            const chatInput = document.getElementById('chat-input');
+            const sendButton = document.getElementById('send-button');
+            const voiceButton = document.getElementById('voice-button');
+            const voiceIndicator = document.getElementById('voice-indicator');
+
+            let isOpen = false;
+            let isDragging = false;
+            let currentLanguage = 'english';
+            let recognition = null;
+            let speechSynthesis = window.speechSynthesis;
+
+            // Language greetings
+            const greetings = {
+                english: "Hello! I am your Tutor. How can I help you today?",
+                hindi: "नमस्ते! मैं आपका शिक्षक हूँ। आज मैं आपकी किस प्रकार मदद कर सकता हूँ?",
+                marathi: "नमस्कार! मी तुमचा शिक्षक आहे. आज मी तुम्हाला कशी मदत करू शकतो?"
+            };
+
+            // Initialize Speech Recognition
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                
+                recognition.onstart = function() {
+                    voiceIndicator.classList.remove('hidden');
+                    voiceButton.innerHTML = '<i class="fas fa-stop text-red-500 text-xs"></i>';
+                };
+
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    chatInput.value = transcript;
+                    sendMessage();
+                };
+
+                recognition.onend = function() {
+                    voiceIndicator.classList.add('hidden');
+                    voiceButton.innerHTML = '<i class="fas fa-microphone text-saffron-500 text-xs"></i>';
+                };
+            }
+
+            // Toggle chat window
+            chatbotButton.addEventListener('click', function() {
+                toggleChat();
+            });
+
+            closeChat.addEventListener('click', function() {
+                toggleChat();
+            });
+
+            function toggleChat() {
+                isOpen = !isOpen;
+                if (isOpen) {
+                    chatbotWindow.classList.remove('hidden');
+                    chatbotButton.style.transform = 'scale(0.9)';
+                } else {
+                    chatbotWindow.classList.add('hidden');
+                    chatbotButton.style.transform = 'scale(1)';
+                }
+            }
+
+            // Language selector
+            languageSelector.addEventListener('change', function() {
+                currentLanguage = this.value;
+                // Clear chat and show greeting
+                chatMessages.innerHTML = '';
+                addMessage(greetings[currentLanguage], 'bot');
+                // TODO: Implement voice synthesis for greeting
+            });
+
+            // Send message
+            sendButton.addEventListener('click', sendMessage);
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+
+            function sendMessage() {
+                const message = chatInput.value.trim();
+                if (!message) return;
+
+                // Add user message
+                addMessage(message, 'user');
+                chatInput.value = '';
+
+                // TODO: Send to backend API
+                // Simulate API response for now
+                setTimeout(() => {
+                    const responses = {
+                        english: "That's a great question! Let me explain...",
+                        hindi: "यह एक बेहतरीन सवाल है! मैं समझाता हूँ...",
+                        marathi: "हा एक उत्तम प्रश्न आहे! मी समजावून सांगतो..."
+                    };
+                    addMessage(responses[currentLanguage], 'bot');
+                    // TODO: Implement text-to-speech
+                }, 1000);
+            }
+
+            function addMessage(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'flex items-start space-x-2';
+                
+                if (sender === 'bot') {
+                    messageDiv.innerHTML = `
+                        <div class="w-8 h-8 bg-saffron-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-robot text-saffron-500 text-xs"></i>
+                        </div>
+                        <div class="bg-white rounded-xl p-3 shadow-sm border border-cream-200 max-w-64">
+                            <p class="text-sm text-chalkboard-600">${text}</p>
+                        </div>
+                    `;
+                } else {
+                    messageDiv.innerHTML = `
+                        <div class="w-full flex justify-end">
+                            <div class="bg-saffron-400 text-white rounded-xl p-3 max-w-64">
+                                <p class="text-sm">${text}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // Voice recording
+            voiceButton.addEventListener('click', function() {
+                if (recognition) {
+                    if (recognition.state === 'listening') {
+                        recognition.stop();
+                    } else {
+                        recognition.start();
+                    }
+                }
+            });
+
+            // Make chatbot draggable
+            let isDragging = false;
+            let startX, startY, startLeft, startTop;
+
+            chatbotContainer.addEventListener('mousedown', function(e) {
+                if (e.target.closest('#chatbot-window')) return;
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                const rect = chatbotContainer.getBoundingClientRect();
+                startLeft = rect.left;
+                startTop = rect.top;
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+
+            function onMouseMove(e) {
+                if (!isDragging) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                const newLeft = Math.max(0, Math.min(window.innerWidth - 64, startLeft + dx));
+                const newTop = Math.max(0, Math.min(window.innerHeight - 64, startTop + dy));
+                chatbotContainer.style.left = newLeft + 'px';
+                chatbotContainer.style.top = newTop + 'px';
+                chatbotContainer.style.right = 'auto';
+                chatbotContainer.style.bottom = 'auto';
+            }
+
+            function onMouseUp() {
+                isDragging = false;
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            }
+
+            // Initialize with greeting
+            addMessage(greetings[currentLanguage], 'bot');
+
+            // TODO: Implement API integration
+            // TODO: Implement proper voice synthesis with Indian female voices
+            // TODO: Add error handling for speech recognition
+            // TODO: Add typing indicators
+            // TODO: Implement conversation history
+        })();
+    </script>
+</body>
+</html>

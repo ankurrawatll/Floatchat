@@ -83,19 +83,55 @@ export default function ChatbotWidget() {
       let selectedVoice = null;
       
       if (language === 'hindi' || language === 'marathi') {
-        // Use Hindi voice for both Hindi and Marathi
+        // Priority 1: Look for Hindi female voice
         selectedVoice = voices.find(voice => 
-          voice.name.includes('Hindi') || 
-          voice.lang.includes('hi')
+          (voice.name.includes('Hindi') || voice.lang.includes('hi')) &&
+          (voice.name.includes('Female') || voice.name.includes('Girl') || voice.name.includes('Woman'))
         );
-        // Fallback to any Indian voice
+        
+        // Priority 2: Look for any Hindi voice
         if (!selectedVoice) {
           selectedVoice = voices.find(voice => 
-            voice.name.includes('India') || 
-            voice.name.includes('Indian')
+            voice.name.includes('Hindi') || voice.lang.includes('hi')
+          );
+        }
+        
+        // Priority 3: Look for Indian female voice
+        if (!selectedVoice) {
+          selectedVoice = voices.find(voice => 
+            (voice.name.includes('India') || voice.name.includes('Indian')) &&
+            (voice.name.includes('Female') || voice.name.includes('Girl') || voice.name.includes('Woman'))
+          );
+        }
+        
+        // Priority 4: Look for any Indian voice
+        if (!selectedVoice) {
+          selectedVoice = voices.find(voice => 
+            voice.name.includes('India') || voice.name.includes('Indian')
+          );
+        }
+        
+        // Priority 5: Look for any female voice with Hindi language code
+        if (!selectedVoice) {
+          selectedVoice = voices.find(voice => 
+            voice.lang.includes('hi') && 
+            (voice.name.includes('Female') || voice.name.includes('Girl') || voice.name.includes('Woman'))
+          );
+        }
+        
+        // Priority 6: Fallback to any Hindi language voice
+        if (!selectedVoice) {
+          selectedVoice = voices.find(voice => voice.lang.includes('hi'));
+        }
+        
+        // Priority 7: Fallback to any female voice
+        if (!selectedVoice) {
+          selectedVoice = voices.find(voice => 
+            voice.name.includes('Female') || voice.name.includes('Girl') || voice.name.includes('Woman')
           );
         }
       } else {
+        // English voice selection
         selectedVoice = voices.find(voice => 
           voice.name.includes('Female') && 
           (voice.name.includes('Google') || voice.name.includes('UK'))
@@ -104,6 +140,9 @@ export default function ChatbotWidget() {
       
       if (selectedVoice) {
         utterance.voice = selectedVoice;
+        console.log('Selected voice:', selectedVoice.name, 'for language:', language);
+      } else {
+        console.log('No suitable voice found for language:', language);
       }
       
       utterance.rate = 0.9;
