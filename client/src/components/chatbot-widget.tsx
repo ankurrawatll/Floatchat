@@ -82,16 +82,19 @@ export default function ChatbotWidget() {
       const voices = speechSynthesis.getVoices();
       let selectedVoice = null;
       
-      if (language === 'hindi') {
+      if (language === 'hindi' || language === 'marathi') {
+        // Use Hindi voice for both Hindi and Marathi
         selectedVoice = voices.find(voice => 
           voice.name.includes('Hindi') || 
           voice.lang.includes('hi')
         );
-      } else if (language === 'marathi') {
-        selectedVoice = voices.find(voice => 
-          voice.name.includes('Marathi') || 
-          voice.lang.includes('mr')
-        );
+        // Fallback to any Indian voice
+        if (!selectedVoice) {
+          selectedVoice = voices.find(voice => 
+            voice.name.includes('India') || 
+            voice.name.includes('Indian')
+          );
+        }
       } else {
         selectedVoice = voices.find(voice => 
           voice.name.includes('Female') && 
