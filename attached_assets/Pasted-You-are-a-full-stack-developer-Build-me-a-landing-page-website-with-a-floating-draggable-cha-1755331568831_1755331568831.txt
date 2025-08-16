@@ -1,0 +1,128 @@
+You are a full-stack developer.
+Build me a **landing page website** with a **floating draggable chatbot widget**.
+Theme: **Simple Marathi School Theme** (like udemy for marathi school student )(soft colors like saffron, green, white; chalkboard style fonts; clean UI, looks like a school learning site).
+
+## 🎯 Project Requirements
+
+### 1. Landing Page
+
+* A simple hero section: "Marathi Vidyalaya – Smart AI Tutor"
+* Subtitle: "Ask your doubts in English, Hindi, or Marathi."
+* A background with a chalkboard or school classroom style.
+* Footer with "Built with AI".
+
+### 2. Floating Chatbot Widget
+
+* Small circular floating button (bottom-right) with a book/chatbot icon.
+* Click → expands into chat window (rounded card, glassmorphism look).
+* Draggable across the screen.
+* Close button to minimize.
+* Should support both **Text input** and **Mic button** for voice queries.
+
+### 3. Voice Features
+
+* **STT (Speech-to-Text)**: Use browser **Web Speech API** (free, runs locally in Chrome/Edge).
+* **TTS (Text-to-Speech)**: Use **Web Speech API SpeechSynthesis**, force it to use an **Indian female voice** (Google Hindi Female, Google UK English Female, or similar depending on language).
+* On receiving response → chatbot speaks the answer in selected language voice.
+
+### 4. Language Selector
+
+* Dropdown at top of chatbot: **English / Hindi / Marathi**.
+* When selected:
+
+  * Refresh conversation.
+  * Greet student in that language with a fixed greeting:
+
+    * English → "Hello! I am your Tutor. How can I help you today?"
+    * Hindi → "नमस्ते! मैं आपका शिक्षक हूँ। आज मैं आपकी किस प्रकार मदद कर सकता हूँ?"
+    * Marathi → "नमस्कार! मी तुमचा शिक्षक आहे. आज मी तुम्हाला कशी मदत करू शकतो?"
+  * From then onward → all queries + answers must be in that selected language only.
+  * The user should **not have to instruct the bot** to switch languages.
+
+### 5. Chat Flow
+
+Student (Voice/Text Input)
+↓
+Floating Widget (JS draggable chat UI)
+↓
+\[Speech-to-Text → Web Speech API]
+↓
+Text Query sent to Backend (Node.js/Express)
+↓
+Backend calls **Gemini API** (AIzaSyCdWkyLQkucGa4myFOIz7CQ0RmRJ6fjBIA) ("[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash\:generateContent") with](https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent%22%29 with) language context (prompt always enforces chosen language).
+↓
+LLM generates Answer in chosen language.
+↓
+Backend returns text.
+↓
+Frontend displays message + uses SpeechSynthesis to speak in Indian female voice.
+
+### 6. Backend (Node.js / Express)
+
+* Simple `/chat` POST route:
+
+  * Accepts `{ text, language }` from frontend.
+  * Calls Gemini API (`gemini-pro` or `gemini-1.5-flash`) with system prompt:
+
+    ```
+    You are a friendly tutor. Always respond only in {{language}}. 
+    The user is a student. Explain clearly and politely. 
+    ```
+  * Return `{"reply": "..."}`.
+
+### 7. Hosting / Demo
+
+* All in single Replit project.
+* One-click run (Express server + static frontend).
+* Frontend served from `/public/index.html`.
+* Use free Gemini API key from environment variable `GEMINI_API_KEY`.
+
+---
+
+## 📂 File Structure
+
+* `index.js` → Node.js backend with Express.
+* `/public/index.html` → Landing page + chatbot widget.
+* `/public/chatbot.js` → Chatbot widget logic (drag, expand, mic, STT, TTS, API call).
+* `/public/style.css` → Styles (school theme + chatbot UI).
+
+---
+
+## 🚀 Detailed Requirements for Files
+
+### `index.js`
+
+* Express server, serve static files from `/public`.
+* Endpoint `POST /chat` → calls Gemini API.
+* Use `node-fetch` for API call.
+* Add `dotenv` for `GEMINI_API_KEY`.
+
+### `public/index.html`
+
+* Marathi school theme landing page with hero text.
+* Include floating chatbot (`<script src="chatbot.js"></script>`).
+* Link stylesheet `style.css`.
+
+### `public/chatbot.js`
+
+* Floating draggable widget.
+* Expand/collapse animation.
+* Dropdown for language selection.
+* Input box + mic button.
+* Uses Web Speech API:
+
+  * `SpeechRecognition` for STT.
+  * `speechSynthesis` for TTS. Select female Indian voices.
+* On language change → greet in that language.
+* On send (voice/text) → call `/chat` with `{ text, language }`.
+* Display both student & tutor messages in chat UI.
+
+### `public/style.css`
+
+* Theme: Chalkboard + classroom colors (green, orange, white).
+* Rounded corners, shadows, soft transitions.
+* Chat widget looks like a **speech bubble notebook**.
+
+---
+
+⚡ Deliverable: A working Replit app that runs `node index.js` → opens a landing page with Marathi school theme → floating chatbot → voice/text input/output → Gemini API tutor answers in chosen language (English/Hindi/Marathi).
