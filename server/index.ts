@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { documentIndexer } from "./documentIndexer";
 
 const app = express();
 app.use(express.json());
@@ -38,6 +39,14 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Load lesson documents
+  try {
+    await documentIndexer.loadDocuments();
+    log('Lesson documents loaded successfully');
+  } catch (error) {
+    log('Warning: Could not load lesson documents, continuing without them');
+  }
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
