@@ -32,6 +32,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug endpoint to check document loading status
+  app.get("/api/debug/documents", async (req, res) => {
+    try {
+      const subjects = documentIndexer.getAvailableSubjects();
+      const standards = documentIndexer.getAvailableStandards();
+      const totalDocs = documentIndexer.getDocumentsBySubject('').length;
+      
+      res.json({
+        status: 'success',
+        totalDocuments: totalDocs,
+        subjects,
+        standards,
+        message: totalDocs > 0 ? 'Documents loaded successfully' : 'No documents loaded'
+      });
+    } catch (error) {
+      console.error('Error in debug endpoint:', error);
+      res.status(500).json({ 
+        status: 'error',
+        error: error.message,
+        totalDocuments: 0
+      });
+    }
+  });
+
   // Chat endpoint
   app.post("/api/chat", async (req, res) => {
     try {
@@ -49,7 +73,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create language-specific system prompt
       const languagePrompts = {
-        english: "You are a friendly English tutor with access to the school's lesson database. MANDATORY RULE: You MUST respond ONLY in English language. NEVER use any other language. NEVER mix languages. NEVER say 'I can only communicate in English' or similar phrases. ALWAYS use pure English. EXTREMELY IMPORTANT: NEVER use asterisks (*), double asterisks (**), bold formatting, or any special formatting characters in your responses. Write ONLY clean, plain text without any symbols or formatting. The user is a student. Explain clearly and politely in English only. REMEMBER: You are an English tutor, so respond in English. IMPORTANT: Use the provided lesson context to give accurate, syllabus-specific answers when available.",
+        english: "You are a knowledgeable English tutor with access to the school's lesson database. MANDATORY RULE: You MUST respond ONLY in English language. NEVER use any other language. NEVER mix languages. NEVER say 'I can only communicate in English' or similar phrases. ALWAYS use pure English. EXTREMELY IMPORTANT: NEVER use asterisks (*), double asterisks (**), bold formatting, or any special formatting characters in your responses. Write ONLY clean, plain text without any symbols or formatting. The user is a student. Explain clearly and politely in English only. REMEMBER: You are an English tutor, so respond in English. CRITICAL: When lesson context is provided, use it immediately to give direct, specific answers. Do NOT ask the user for more information. Provide helpful explanations based on the lesson content given.",
         hindi: "आप एक मित्रवत हिंदी शिक्षक हैं जिनके पास स्कूल के पाठ्यक्रम डेटाबेस तक पहुंच है। अनिवार्य नियम: आपको केवल हिंदी भाषा में ही जवाब देना चाहिए। कभी भी अंग्रेजी या कोई अन्य भाषा नहीं बोलें। कभी भी 'मैं केवल अंग्रेजी में बात कर सकता हूं' या ऐसी कोई बात नहीं कहें। केवल शुद्ध हिंदी का प्रयोग करें। अत्यंत महत्वपूर्ण: अपने जवाब में कभी भी एस्टरिस्क (*), डबल एस्टरिस्क (**), बोल्ड फॉर्मेटिंग या कोई विशेष प्रतीक नहीं लिखें। केवल साफ, सादा टेक्स्ट लिखें, बिना किसी प्रतीक या फॉर्मेटिंग के। छात्र को स्पष्ट और विनम्रतापूर्वक हिंदी में ही समझाएं। याद रखें: आप एक हिंदी शिक्षक हैं, इसलिए हिंदी में जवाब दें। महत्वपूर्ण: दिए गए पाठ संदर्भ का उपयोग करके सटीक, पाठ्यक्रम-विशिष्ट उत्तर दें जब उपलब्ध हो।",
         marathi: "तुम्ही एक मैत्रीपूर्ण मराठी शिक्षक आहात ज्यांच्याकडे शाळेच्या पाठ्यक्रम डेटाबेसची प्रवेश आहे. अनिवार्य नियम: तुम्हाला फक्त मराठी भाषेतच उत्तर द्यायचे आहे. कधीही इंग्रजी किंवा इतर भाषा वापरू नका. कधीही 'मी फक्त इंग्रजीत बोलू शकतो' किंवा अशी कोणतीही बात करू नका. फक्त शुद्ध मराठी वापरा. अत्यंत महत्वाचे: तुमच्या उत्तरांमध्ये कधीही एस्टरिस्क (*), डबल एस्टरिस्क (**), बोल्ड फॉर्मेटिंग किंवा कोणतेही विशेष प्रतीक वापरू नका. फक्त स्वच्छ, साधा टेक्स्ट लिहा, कोणत्याही प्रतीक किंवा फॉर्मेटिंगशिवाय. विद्यार्थीला स्पष्ट आणि सभ्यपणे मराठीतच समजावून सांगा. लक्षात ठेवा: तुम्ही एक मराठी शिक्षक आहात, म्हणून मराठीत उत्तर द्या. महत्वाचे: दिलेल्या पाठ संदर्भाचा वापर करून अचूक, पाठ्यक्रम-विशिष्ट उत्तरे द्या जेव्हा उपलब्ध असतात."
       };
@@ -59,21 +83,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Add lesson context if available
       let contextPrompt = '';
       try {
-        if (message.toLowerCase().includes('lesson') || 
-            message.toLowerCase().includes('chapter') || 
-            message.toLowerCase().includes('syllabus') ||
-            message.toLowerCase().includes('math') ||
-            message.toLowerCase().includes('english') ||
-            message.toLowerCase().includes('marathi')) {
-          
+        // More aggressive lesson context detection
+        const lessonKeywords = ['lesson', 'chapter', 'syllabus', 'math', 'english', 'marathi', 'subject', 'topic', 'unit'];
+        const hasLessonKeyword = lessonKeywords.some(keyword => 
+          message.toLowerCase().includes(keyword)
+        );
+        
+        if (hasLessonKeyword) {
+          console.log('Lesson keyword detected, searching for relevant content...');
           const relevantDocs = await documentIndexer.searchRelevantContent(message, undefined, '8'); // Default to Std 8
           
           if (relevantDocs.length > 0) {
-            contextPrompt = `\n\nRelevant Lesson Context:\n`;
-            relevantDocs.forEach(doc => {
-              contextPrompt += `Subject: ${doc.subject}, Lesson ${doc.lessonNumber}\n`;
-              contextPrompt += `Content: ${doc.content.substring(0, 500)}...\n\n`;
+            console.log(`Found ${relevantDocs.length} relevant documents`);
+            contextPrompt = `\n\nIMPORTANT LESSON CONTEXT - USE THIS INFORMATION TO ANSWER:\n`;
+            relevantDocs.forEach((doc, index) => {
+              contextPrompt += `Document ${index + 1}: ${doc.subject} - Lesson ${doc.lessonNumber}\n`;
+              contextPrompt += `Content: ${doc.content.substring(0, 800)}...\n\n`;
             });
+            contextPrompt += `INSTRUCTIONS: Use the above lesson content to provide a direct, helpful answer. Do NOT ask the user for more information. Give specific explanations based on the lesson content provided.`;
+          } else {
+            console.log('No relevant documents found');
           }
         }
       } catch (error) {

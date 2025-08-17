@@ -18,11 +18,27 @@ class DocumentIndexer {
 
   async loadDocuments() {
     try {
-      const lessonDir = path.join(process.cwd(), 'lesson_dataset');
+      // Try multiple possible paths for Render deployment
+      const possiblePaths = [
+        path.join(process.cwd(), 'lesson_dataset'),
+        path.join(process.cwd(), '..', 'lesson_dataset'),
+        path.join(process.cwd(), '..', '..', 'lesson_dataset'),
+        path.join(__dirname, '..', 'lesson_dataset'),
+        path.join(__dirname, '..', '..', 'lesson_dataset')
+      ];
       
-      // Check if directory exists
-      if (!fs.existsSync(lessonDir)) {
-        console.log('Lesson dataset directory not found, skipping document loading');
+      let lessonDir = null;
+      for (const possiblePath of possiblePaths) {
+        if (fs.existsSync(possiblePath)) {
+          lessonDir = possiblePath;
+          console.log(`Found lesson dataset at: ${lessonDir}`);
+          break;
+        }
+      }
+      
+      if (!lessonDir) {
+        console.log('Lesson dataset directory not found in any expected location, skipping document loading');
+        console.log('Searched paths:', possiblePaths);
         return;
       }
       
@@ -32,7 +48,7 @@ class DocumentIndexer {
       for (const file of files) {
         if (file.endsWith('.docx')) {
           try {
-            const doc = await this.parseDocument(file);
+            const doc = await this.parseDocument(file, lessonDir);
             this.documents.push(doc);
             this.indexDocument(doc);
             console.log(`Loaded document: ${file}`);
@@ -48,8 +64,8 @@ class DocumentIndexer {
     }
   }
 
-  private async parseDocument(filename: string): Promise<LessonDocument> {
-    const filePath = path.join(process.cwd(), 'lesson_dataset', filename);
+  private async parseDocument(filename: string, lessonDir: string): Promise<LessonDocument> {
+    const filePath = path.join(lessonDir, filename);
     const buffer = fs.readFileSync(filePath);
     
     // Extract text from DOCX
