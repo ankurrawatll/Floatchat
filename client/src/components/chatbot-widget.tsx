@@ -231,14 +231,38 @@ export default function ChatbotWidget() {
     setMessages([]);
   };
 
+  // Aggressive stop utility: cancels and flushes speech queue
+  const aggressiveStop = () => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.pause();
+        window.speechSynthesis.resume();
+        window.speechSynthesis.cancel();
+      } catch {}
+    }
+  };
+
   // Stop speaking on unmount / page unload
   useEffect(() => {
-    const handleBeforeUnload = () => stopSpeaking();
+    const handleBeforeUnload = () => aggressiveStop();
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      stopSpeaking();
+      aggressiveStop();
     };
+  }, []);
+
+  // Stop TTS when widget is closed/toggled
+  useEffect(() => {
+    if (!isOpen) aggressiveStop();
+  }, [isOpen]);
+
+  // Stop on tab hide/visibility change
+  useEffect(() => {
+    const onVisibility = () => { if (document.hidden) aggressiveStop(); };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
   }, []);
 
   const handleMouseDown = (e: React.MouseEvent) => {
