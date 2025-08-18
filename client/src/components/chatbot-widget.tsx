@@ -20,8 +20,16 @@ export default function ChatbotWidget() {
   const [isDragging, setIsDragging] = useState(false);
   
   const recognitionRef = useRef<any>(null);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef({ startX: 0, startY: 0, startLeft: 0, startTop: 0 });
+
+  const stopSpeaking = () => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      utteranceRef.current = null;
+    }
+  };
 
   const greetings = {
     english: "Hello! I am your Tutor. How can I help you today?",
@@ -38,6 +46,7 @@ export default function ChatbotWidget() {
       recognitionRef.current.interimResults = false;
       
       recognitionRef.current.onstart = () => {
+        stopSpeaking();
         setIsListening(true);
       };
 
@@ -64,6 +73,7 @@ export default function ChatbotWidget() {
 
   // Initialize with greeting
   useEffect(() => {
+    stopSpeaking();
     setMessages([{
       text: greetings[currentLanguage],
       sender: 'bot',
@@ -76,6 +86,8 @@ export default function ChatbotWidget() {
 
   const speakText = (text: string, language: Language) => {
     if ('speechSynthesis' in window) {
+      // interrupt any ongoing/queued speech
+      stopSpeaking();
       const utterance = new SpeechSynthesisUtterance(text);
       
       // Configure voice based on language
@@ -147,11 +159,16 @@ export default function ChatbotWidget() {
       
       utterance.rate = 0.9;
       utterance.pitch = 1.1;
+      utterance.onend = () => { utteranceRef.current = null; };
+      utterance.onerror = () => { utteranceRef.current = null; };
+      utteranceRef.current = utterance;
       speechSynthesis.speak(utterance);
     }
   };
 
   const handleSendMessage = async (messageText?: string) => {
+    // stop any current speech when a new message is sent
+    stopSpeaking();
     const message = messageText || currentMessage.trim();
     if (!message) return;
 
@@ -200,6 +217,8 @@ export default function ChatbotWidget() {
 
   const startVoiceRecording = () => {
     if (recognitionRef.current && !isListening) {
+      // stop TTS before starting mic
+      stopSpeaking();
       recognitionRef.current.start();
     } else if (isListening) {
       recognitionRef.current.stop();
@@ -207,9 +226,20 @@ export default function ChatbotWidget() {
   };
 
   const handleLanguageChange = (language: Language) => {
+    stopSpeaking();
     setCurrentLanguage(language);
     setMessages([]);
   };
+
+  // Stop speaking on unmount / page unload
+  useEffect(() => {
+    const handleBeforeUnload = () => stopSpeaking();
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      stopSpeaking();
+    };
+  }, []);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('.chat-content')) return;
