@@ -152,6 +152,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate MCQ quiz endpoint
+  app.post("/api/quiz", async (req, res) => {
+    try {
+      const { topic, difficulty, language, numQuestions } = req.body as {
+        topic?: string;
+        difficulty: 'easy' | 'medium' | 'hard';
+        language: 'english' | 'hindi' | 'marathi';
+        numQuestions?: number;
+      };
+
+      const count = Math.max(1, Math.min(10, numQuestions ?? 5));
+
+      const difficultyText = {
+        easy: 'easy and beginner-friendly',
+        medium: 'moderate with some reasoning',
+        hard: 'challenging and conceptually deep'
+      }[difficulty];
+
+      const systemByLang: Record<'english'|'hindi'|'marathi', string> = {
+        english: `You are a school quiz generator. Create ${count} multiple-choice questions (${difficultyText}). Output strictly JSON with this shape: { "questions": [ { "q": string, "options": [string,string,string,string], "answerIndex": 0-3, "explanation": string } ] }. Do not add any extra text.`,
+        hindi: `आप एक स्कूल क्विज़ जनरेटर हैं। ${count} बहुविकल्पीय प्रश्न बनाएं (${difficultyText}). आउटपुट सख्ती से JSON में दें: { "questions": [ { "q": string, "options": [string,string,string,string], "answerIndex": 0-3, "explanation": string } ] }. कोई अतिरिक्त टेक्स्ट न जोड़ें। सभी सामग्री हिंदी में लिखें।`,
+        marathi: `आपण शाळेचे क्विझ जनरेटर आहात. ${count} बहुपर्यायी प्रश्न तयार करा (${difficultyText}). आउटपुट काटेकोरपणे JSON मध्ये द्या: { "questions": [ { "q": string, "options": [string,string,string,string], "answerIndex": 0-3, "explanation": string } ] }. कोणताही अतिरिक्त मजकूर जोडू नका. सर्व सामग्री मराठीत लिहा.`
+      };
+
+      const topicLine = topic ? (language === 'english' ? `Topic: ${topic}` : language === 'hindi' ? `विषय: ${topic}` : `विषय: ${topic}`) : '';
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.0-flash",
+        config: { systemInstruction: systemByLang[language] },
+        contents: topicLine || (language === 'english' ? 'General school syllabus' : language === 'hindi' ? 'सामान्य स्कूल पाठ्यक्रम' : 'सामान्य शालेय अभ्यासक्रम')
+      });
+
+      let text = response.text || '{}';
+      // Safety: strip formatting artifacts
+      text = text.replace(/^```json\n?|```$/g, '').trim();
+
+      let quiz;
+      try {
+        quiz = JSON.parse(text);
+      } catch {
+        // fallback: ask model to reformat
+        const fix = await ai.models.generateContent({
+          model: "gemini-2.0-flash",
+          contents: `Convert the following into valid JSON only (no prose). Keep schema {"questions":[{"q":"","options":["","","",""],"answerIndex":0,"explanation":""}]}. Input:\n${text}`
+        });
+        const fixed = (fix.text || '').replace(/^```json\n?|```$/g, '').trim();
+        quiz = JSON.parse(fixed || '{}');
+      }
+
+      if (!quiz?.questions || !Array.isArray(quiz.questions)) {
+        return res.status(500).json({ error: 'Failed to generate quiz' });
+      }
+
+      // Clamp and sanitize
+      quiz.questions = quiz.questions.slice(0, count).map((q: any) => ({
+        q: String(q.q || '').slice(0, 300),
+        options: Array.isArray(q.options) ? q.options.slice(0,4).map((o:any)=>String(o).slice(0,120)) : [],
+        answerIndex: Math.max(0, Math.min(3, Number(q.answerIndex) || 0)),
+        explanation: String(q.explanation || '').slice(0, 400)
+      }));
+
+      res.json(quiz);
+    } catch (error) {
+      console.error('Quiz API error:', error);
+      res.status(500).json({ error: 'Failed to generate quiz' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
