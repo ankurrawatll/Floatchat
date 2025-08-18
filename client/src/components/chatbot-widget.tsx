@@ -46,7 +46,7 @@ export default function ChatbotWidget() {
       recognitionRef.current.interimResults = false;
       
       recognitionRef.current.onstart = () => {
-        stopSpeaking();
+        aggressiveStop();
         setIsListening(true);
       };
 
@@ -168,7 +168,7 @@ export default function ChatbotWidget() {
 
   const handleSendMessage = async (messageText?: string) => {
     // stop any current speech when a new message is sent
-    stopSpeaking();
+    aggressiveStop();
     const message = messageText || currentMessage.trim();
     if (!message) return;
 
@@ -218,7 +218,7 @@ export default function ChatbotWidget() {
   const startVoiceRecording = () => {
     if (recognitionRef.current && !isListening) {
       // stop TTS before starting mic
-      stopSpeaking();
+      aggressiveStop();
       recognitionRef.current.start();
     } else if (isListening) {
       recognitionRef.current.stop();
@@ -226,7 +226,7 @@ export default function ChatbotWidget() {
   };
 
   const handleLanguageChange = (language: Language) => {
-    stopSpeaking();
+    aggressiveStop();
     setCurrentLanguage(language);
     setMessages([]);
   };
