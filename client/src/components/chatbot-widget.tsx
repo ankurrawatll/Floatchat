@@ -22,6 +22,7 @@ export default function ChatbotWidget() {
   const [quizDifficulty, setQuizDifficulty] = useState<'easy'|'medium'|'hard'>('easy');
   const [quizLang, setQuizLang] = useState<Language>('english');
   const [quiz, setQuiz] = useState<{questions: {q:string, options:string[], answerIndex:number, explanation:string}[]} | null>(null);
+  const [quizTopic, setQuizTopic] = useState<string>('');
   const [selectedAnswers, setSelectedAnswers] = useState<(number | null)[]>([]);
   const [showResults, setShowResults] = useState(false);
   
@@ -243,7 +244,7 @@ export default function ChatbotWidget() {
       setShowResults(false);
       setQuiz(null);
       const res = await apiRequest('POST', '/api/quiz', {
-        topic: undefined,
+        topic: quizTopic && quizTopic.trim() ? quizTopic.trim() : undefined,
         difficulty: quizDifficulty,
         language: quizLang,
         numQuestions: 5,
@@ -310,8 +311,8 @@ export default function ChatbotWidget() {
     
     const dx = e.clientX - dragRef.current.startX;
     const dy = e.clientY - dragRef.current.startY;
-    const newX = Math.max(0, Math.min(window.innerWidth - 320, dragRef.current.startLeft + dx));
-    const newY = Math.max(0, Math.min(window.innerHeight - 400, dragRef.current.startTop + dy));
+    const newX = Math.max(0, Math.min(window.innerWidth - 448, dragRef.current.startLeft + dx));
+    const newY = Math.max(0, Math.min(window.innerHeight - 544, dragRef.current.startTop + dy));
     
     setPosition({ x: newX, y: newY });
   };
@@ -357,7 +358,7 @@ export default function ChatbotWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="absolute bottom-20 right-0 w-80 h-96 bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 overflow-hidden chat-content">
+        <div className="absolute bottom-20 right-0 w-[28rem] h-[34rem] bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 overflow-hidden chat-content">
           {/* Chat Header */}
           <div className="bg-gradient-to-r from-saffron-400 to-saffron-500 p-4 flex items-center justify-between text-white">
             <div className="flex items-center space-x-2">
@@ -404,7 +405,7 @@ export default function ChatbotWidget() {
           </div>
 
           {/* Body */}
-          <div className="flex-1 p-4 space-y-3 overflow-y-auto max-h-64 bg-gradient-to-b from-cream-50 to-white">
+          <div className="flex-1 p-4 space-y-3 overflow-y-auto max-h-[24rem] bg-gradient-to-b from-cream-50 to-white">
             {mode === 'assistant' ? (
               <>
                 {messages.map((message, index) => (
@@ -452,7 +453,8 @@ export default function ChatbotWidget() {
                     <option value="medium">Medium</option>
                     <option value="hard">Hard</option>
                   </select>
-                  <button onClick={async ()=> { await generateQuiz(); }} className="ml-auto px-3 py-1 rounded bg-saffron-400 text-white text-xs hover:bg-saffron-500">Generate</button>
+                  <input value={quizTopic} onChange={(e)=> setQuizTopic(e.target.value)} placeholder="What type question you want to practise?" className="flex-1 border rounded px-2 py-1 text-sm" />
+                  <button onClick={async ()=> { await generateQuiz(); }} className="px-3 py-1 rounded bg-saffron-400 text-white text-xs hover:bg-saffron-500">Generate</button>
                 </div>
 
                 {/* Quiz Body */}
