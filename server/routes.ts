@@ -269,24 +269,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // TTS endpoint using gTTS
   app.post("/api/tts", async (req, res) => {
     try {
-      const { text, language } = req.body;
+      const { text, lang } = req.body;
       
-      if (!text || !language) {
-        return res.status(400).json({ error: "Missing text or language" });
+      if (!text || !lang) {
+        return res.status(400).json({ error: "Missing text or lang" });
       }
+
+      console.log('TTS request:', { text: text.substring(0, 50) + '...', lang });
 
       // Import gTTS dynamically
       const gTTS = (await import('gtts')).default;
       
-      // Create gTTS instance
-      const gtts = new gTTS(text, language);
+      // Create gTTS instance with proper language code
+      const gtts = new gTTS(text, lang);
       
       // Generate audio buffer
       const audioBuffer = await new Promise<Buffer>((resolve, reject) => {
         gtts.getBuffer((err: any, buffer: Buffer) => {
           if (err) {
+            console.error('gTTS buffer error:', err);
             reject(err);
           } else {
+            console.log('gTTS buffer generated, size:', buffer.length);
             resolve(buffer);
           }
         });
@@ -302,7 +306,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
     } catch (error) {
       console.error('TTS API error:', error);
-      res.status(500).json({ error: "Failed to generate TTS audio" });
+      res.status(500).json({ error: "Failed to generate TTS audio", details: error.message });
     }
   });
 

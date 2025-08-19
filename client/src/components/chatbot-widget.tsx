@@ -154,7 +154,7 @@ export default function ChatbotWidget() {
         },
         body: JSON.stringify({
           text: text,
-          language: language === 'hindi' ? 'hi' : 'mr'
+          lang: language === 'hindi' ? 'hi' : 'mr'
         })
       });
 
@@ -181,8 +181,16 @@ export default function ChatbotWidget() {
       audio.play();
       console.log('Started gTTS for language:', language, 'text length:', text.length);
     } catch (error) {
-      console.error('gTTS failed, falling back to browser TTS:', error);
-      speakWithBrowserTTS(text, language);
+      console.error('gTTS failed:', error);
+      // For Hindi/Marathi, don't fall back to browser TTS since it doesn't work well
+      // Instead, just log the error and continue without TTS
+      if (language === 'hindi' || language === 'marathi') {
+        console.log('TTS not available for', language, '- continuing without voice');
+        utteranceRef.current = null;
+      } else {
+        // Only fall back to browser TTS for English
+        speakWithBrowserTTS(text, language);
+      }
     }
   };
 
@@ -214,6 +222,12 @@ export default function ChatbotWidget() {
       } else {
         utterance.lang = 'en-IN';
         console.log('No suitable voice found for language:', language, 'Available voices:', voices.length);
+        // For Hindi/Marathi, don't use browser TTS if no suitable voice
+        if (language === 'hindi' || language === 'marathi') {
+          console.log('Skipping browser TTS for', language, '- no suitable voice available');
+          utteranceRef.current = null;
+          return;
+        }
       }
       
       utterance.rate = 0.9;
