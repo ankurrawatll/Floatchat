@@ -454,9 +454,21 @@ export default function ChatbotWidget() {
           {/* Body */}
           <div className="flex-1 flex flex-col min-h-0">
             {/* Messages Area */}
-            <div className="flex-1 p-4 space-y-3 overflow-y-auto bg-gradient-to-b from-gray-900 to-black">
+            <div className="flex-1 p-4 space-y-3 overflow-y-auto bg-gradient-to-b from-gray-900 to-black min-h-[200px] scrollbar-thin scrollbar-thumb-saffron-400 scrollbar-track-gray-800">
               {mode === 'assistant' ? (
                 <>
+                  {/* Welcome message when no messages exist */}
+                  {messages.length === 0 && !isLoading && (
+                    <div className="flex items-center justify-center h-full min-h-[150px]">
+                      <div className="text-center text-gray-400">
+                        <div className="w-16 h-16 bg-saffron-400/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <i className="fas fa-robot text-saffron-400 text-2xl"></i>
+                        </div>
+                        <p className="text-sm">Start a conversation with your AI Tutor!</p>
+                      </div>
+                    </div>
+                  )}
+                  
                   {messages.map((message, index) => (
                     <div key={index} className={`flex ${message.sender === 'user' ? 'justify-end' : 'items-start space-x-2'}`}>
                       {message.sender === 'bot' && (
