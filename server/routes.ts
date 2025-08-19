@@ -121,18 +121,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Combine system prompt with lesson context
       const enhancedSystemPrompt = systemPrompt + contextPrompt;
 
+      // Add language directive prefix to the user's content to reduce model drift
+      const userPrefix = (language === 'english')
+        ? 'Answer strictly in English: '
+        : (language === 'hindi')
+          ? 'कृपया strictly हिंदी में उत्तर दें: '
+          : 'कृपया strictly मराठीत उत्तर द्या: ';
+
       // Call Gemini API
       let response = await ai.models.generateContent({
         model: "gemini-2.0-flash",
         config: {
           systemInstruction: enhancedSystemPrompt,
         },
-        contents: message,
+        contents: userPrefix + message,
       });
 
       let reply = response.text || "Sorry, I couldn't generate a response.";
-      // Retry once if the model incorrectly claims English-only
-      if ((language === 'hindi' || language === 'marathi') && /only respond in English|English only|can only/i.test(reply)) {
+      // Retry once if the model incorrectly claims English-only or doesn't use Devanagari for hi/mr
+      const needsRetry =
+        (language === 'hindi' || language === 'marathi') && (
+          /only respond in English|English only|can only/i.test(reply) ||
+          // basic script heuristic: expect Devanagari characters present
+          !/[\u0900-\u097F]/.test(reply)
+        );
+      if (needsRetry) {
         response = await ai.models.generateContent({
           model: "gemini-2.0-flash",
           config: { systemInstruction: enhancedSystemPrompt },

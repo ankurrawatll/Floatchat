@@ -71,6 +71,8 @@ export default function ChatbotWidget() {
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
+      // default recognition language based on current selection
+      recognitionRef.current.lang = currentLanguage === 'hindi' ? 'hi-IN' : currentLanguage === 'marathi' ? 'mr-IN' : 'en-IN';
       
       recognitionRef.current.onstart = () => {
         aggressiveStop();
@@ -92,6 +94,13 @@ export default function ChatbotWidget() {
       };
     }
   }, []);
+
+  // Update recognition language when currentLanguage changes
+  useEffect(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.lang = currentLanguage === 'hindi' ? 'hi-IN' : currentLanguage === 'marathi' ? 'mr-IN' : 'en-IN';
+    }
+  }, [currentLanguage]);
 
   // Auto-scroll to bottom
   useEffect(() => {
