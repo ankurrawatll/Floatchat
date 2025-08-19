@@ -266,6 +266,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // TTS endpoint using gTTS
+  app.post("/api/tts", async (req, res) => {
+    try {
+      const { text, language } = req.body;
+      
+      if (!text || !language) {
+        return res.status(400).json({ error: "Missing text or language" });
+      }
+
+      // Import gTTS dynamically
+      const gTTS = (await import('gtts')).default;
+      
+      // Create gTTS instance
+      const gtts = new gTTS(text, language);
+      
+      // Generate audio buffer
+      const audioBuffer = await new Promise<Buffer>((resolve, reject) => {
+        gtts.getBuffer((err: any, buffer: Buffer) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(buffer);
+          }
+        });
+      });
+
+      // Set response headers
+      res.setHeader('Content-Type', 'audio/mpeg');
+      res.setHeader('Content-Length', audioBuffer.length);
+      res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+      
+      // Send audio buffer
+      res.send(audioBuffer);
+      
+    } catch (error) {
+      console.error('TTS API error:', error);
+      res.status(500).json({ error: "Failed to generate TTS audio" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
