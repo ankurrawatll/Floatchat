@@ -160,8 +160,12 @@ export default function ChatbotWidget() {
       
       if (selectedVoice) {
         utterance.voice = selectedVoice;
-        console.log('Selected voice:', selectedVoice.name, 'for language:', language);
+        // Set proper lang hint to improve TTS voice behavior
+        utterance.lang = language === 'hindi' ? 'hi-IN' : language === 'marathi' ? 'mr-IN' : 'en-IN';
+        console.log('Selected voice:', selectedVoice.name, 'for language:', language, 'lang:', utterance.lang);
       } else {
+        // Still set a language code so system picks a better fallback
+        utterance.lang = language === 'hindi' ? 'hi-IN' : language === 'marathi' ? 'mr-IN' : 'en-IN';
         console.log('No suitable voice found for language:', language);
       }
       

@@ -78,7 +78,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         marathi: "तुम्ही एक मैत्रीपूर्ण मराठी शिक्षक आहात ज्यांच्याकडे शाळेच्या पाठ्यक्रम डेटाबेसची प्रवेश आहे. अनिवार्य नियम: तुम्हाला फक्त मराठी भाषेतच उत्तर द्यायचे आहे. कधीही इंग्रजी किंवा इतर भाषा वापरू नका. कधीही 'मी फक्त इंग्रजीत बोलू शकतो' किंवा अशी कोणतीही बात करू नका. फक्त शुद्ध मराठी वापरा. अत्यंत महत्वाचे: तुमच्या उत्तरांमध्ये कधीही एस्टरिस्क (*), डबल एस्टरिस्क (**), बोल्ड फॉर्मेटिंग किंवा कोणतेही विशेष प्रतीक वापरू नका. फक्त स्वच्छ, साधा टेक्स्ट लिहा, कोणत्याही प्रतीक किंवा फॉर्मेटिंगशिवाय. विद्यार्थीला स्पष्ट आणि सभ्यपणे मराठीतच समजावून सांगा. लक्षात ठेवा: तुम्ही एक मराठी शिक्षक आहात, म्हणून मराठीत उत्तर द्या. महत्वाचे: दिलेल्या पाठ संदर्भाचा वापर करून अचूक, पाठ्यक्रम-विशिष्ट उत्तरे द्या जेव्हा उपलब्ध असतात."
       };
 
-      const systemPrompt = languagePrompts[language as keyof typeof languagePrompts];
+      let systemPrompt = languagePrompts[language as keyof typeof languagePrompts];
+      // Allow creative content like poems/stories if the user asks
+      if (/poem|कविता|कविता|कविता|कविता|story|कहानी|गोष्ट/i.test(message)) {
+        systemPrompt += (language === 'english')
+          ? " You may generate creative content (like poems or short stories) when asked."
+          : (language === 'hindi')
+            ? " जब उपयोगकर्ता विशेष रूप से कहे, आप रचनात्मक सामग्री (जैसे कविता/कहानी) बना सकते हैं।"
+            : " वापरकर्ता विशेषतः विचारल्यास, आपण सर्जनशील सामग्री (उदा. कविता/कथा) तयार करू शकता.";
+      }
 
       // Add lesson context if available
       let contextPrompt = '';
@@ -114,7 +122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const enhancedSystemPrompt = systemPrompt + contextPrompt;
 
       // Call Gemini API
-      const response = await ai.models.generateContent({
+      let response = await ai.models.generateContent({
         model: "gemini-2.0-flash",
         config: {
           systemInstruction: enhancedSystemPrompt,
@@ -123,6 +131,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       let reply = response.text || "Sorry, I couldn't generate a response.";
+      // Retry once if the model incorrectly claims English-only
+      if ((language === 'hindi' || language === 'marathi') && /only respond in English|English only|can only/i.test(reply)) {
+        response = await ai.models.generateContent({
+          model: "gemini-2.0-flash",
+          config: { systemInstruction: enhancedSystemPrompt },
+          contents: (language === 'hindi') ? 'कृपया हिंदी में उत्तर दें: ' + message : 'कृपया मराठीत उत्तर द्या: ' + message
+        });
+        reply = response.text || reply;
+      }
       
       // Clean up any remaining asterisks and formatting characters
       reply = reply.replace(/\*\*/g, '').replace(/\*/g, '').replace(/\*\s*\*/g, '');
