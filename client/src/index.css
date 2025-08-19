@@ -169,25 +169,54 @@
 }
 
 .scrollbar-thin::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {
   background: #1f2937;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background: #fbbf24;
-  border-radius: 3px;
+  border-radius: 4px;
+  border: 1px solid #374151;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background: #f59e0b;
 }
 
+.scrollbar-thin::-webkit-scrollbar-corner {
+  background: #1f2937;
+}
+
 /* Firefox scrollbar */
 .scrollbar-thin {
   scrollbar-width: thin;
   scrollbar-color: #fbbf24 #1f2937;
+}
+
+/* Force scrollbar to always show */
+.scrollbar-always {
+  overflow-y: scroll !important;
+}
+
+.scrollbar-always::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-always::-webkit-scrollbar-track {
+  background: #1f2937;
+  border-radius: 4px;
+}
+
+.scrollbar-always::-webkit-scrollbar-thumb {
+  background: #fbbf24;
+  border-radius: 4px;
+  border: 1px solid #374151;
+}
+
+.scrollbar-always::-webkit-scrollbar-thumb:hover {
+  background: #f59e0b;
 }

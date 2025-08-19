@@ -454,19 +454,37 @@ export default function ChatbotWidget() {
           {/* Body */}
           <div className="flex-1 flex flex-col min-h-0">
             {/* Messages Area */}
-            <div className="flex-1 p-4 space-y-3 overflow-y-auto bg-gradient-to-b from-gray-900 to-black min-h-[200px] scrollbar-thin scrollbar-thumb-saffron-400 scrollbar-track-gray-800">
+            <div className="flex-1 p-4 space-y-3 overflow-y-auto bg-gradient-to-b from-gray-900 to-black min-h-[200px] max-h-[400px] scrollbar-always">
               {mode === 'assistant' ? (
                 <>
                   {/* Welcome message when no messages exist */}
                   {messages.length === 0 && !isLoading && (
-                    <div className="flex items-center justify-center h-full min-h-[150px]">
-                      <div className="text-center text-gray-400">
-                        <div className="w-16 h-16 bg-saffron-400/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <i className="fas fa-robot text-saffron-400 text-2xl"></i>
+                    <>
+                      <div className="flex items-center justify-center h-full min-h-[150px]">
+                        <div className="text-center text-gray-400">
+                          <div className="w-16 h-16 bg-saffron-400/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i className="fas fa-robot text-saffron-400 text-2xl"></i>
+                          </div>
+                          <p className="text-sm">Start a conversation with your AI Tutor!</p>
                         </div>
-                        <p className="text-sm">Start a conversation with your AI Tutor!</p>
                       </div>
-                    </div>
+                      
+                      {/* Additional content to ensure scrollbar appears */}
+                      <div className="space-y-4 mt-8">
+                        <div className="text-center text-gray-500 text-xs">
+                          <p>💡 Tip: You can ask questions in English, Hindi, or Marathi</p>
+                        </div>
+                        <div className="text-center text-gray-500 text-xs">
+                          <p>🎤 Use voice input for hands-free interaction</p>
+                        </div>
+                        <div className="text-center text-gray-500 text-xs">
+                          <p>📚 Get help with any subject or topic</p>
+                        </div>
+                        <div className="text-center text-gray-500 text-xs">
+                          <p>🧠 Switch to Quiz mode to test your knowledge</p>
+                        </div>
+                      </div>
+                    </>
                   )}
                   
                   {messages.map((message, index) => (
