@@ -135,64 +135,11 @@ export default function ChatbotWidget() {
     // interrupt any ongoing/queued speech
     stopSpeaking();
     
-    if (language === 'hindi' || language === 'marathi') {
-      // Use gTTS for Hindi and Marathi
-      speakWithGTTS(text, language);
-    } else {
-      // Use browser TTS for English
-      speakWithBrowserTTS(text, language);
-    }
+    // Use browser TTS for all languages with improved voice selection
+    speakWithBrowserTTS(text, language);
   };
 
-  const speakWithGTTS = async (text: string, language: Language) => {
-    try {
-      // Call backend API to generate TTS audio
-      const response = await fetch('/api/tts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text: text,
-          lang: language === 'hindi' ? 'hi' : 'mr'
-        })
-      });
 
-      if (!response.ok) {
-        throw new Error('TTS API request failed');
-      }
-
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      
-      const audio = new Audio(audioUrl);
-      audio.onended = () => {
-        URL.revokeObjectURL(audioUrl);
-        utteranceRef.current = null;
-        console.log('gTTS ended for language:', language);
-      };
-      audio.onerror = (error) => {
-        URL.revokeObjectURL(audioUrl);
-        utteranceRef.current = null;
-        console.error('gTTS error for language:', language, error);
-      };
-      
-      utteranceRef.current = audio;
-      audio.play();
-      console.log('Started gTTS for language:', language, 'text length:', text.length);
-    } catch (error) {
-      console.error('gTTS failed:', error);
-      // For Hindi/Marathi, don't fall back to browser TTS since it doesn't work well
-      // Instead, just log the error and continue without TTS
-      if (language === 'hindi' || language === 'marathi') {
-        console.log('TTS not available for', language, '- continuing without voice');
-        utteranceRef.current = null;
-      } else {
-        // Only fall back to browser TTS for English
-        speakWithBrowserTTS(text, language);
-      }
-    }
-  };
 
   const speakWithBrowserTTS = (text: string, language: Language) => {
     if ('speechSynthesis' in window) {
@@ -214,24 +161,58 @@ export default function ChatbotWidget() {
       let selectedVoice = null;
       
       if (language === 'english') {
-        // English voice selection
-        // Prefer Indian English female voice if available, otherwise previous heuristic
-        selectedVoice = voices.find(voice => (voice.lang.toLowerCase().includes('en-in') || voice.name.includes('India')) && (voice.name.includes('Female') || voice.name.includes('Girl') || voice.name.includes('Woman')))
-          || voices.find(voice => voice.name.includes('Female') && (voice.name.includes('Google') || voice.name.includes('UK')));
+        // English voice selection - prefer Indian English female voice
+        selectedVoice = voices.find(voice => 
+          (voice.lang.toLowerCase().includes('en-in') || voice.name.includes('India')) && 
+          (voice.name.includes('Female') || voice.name.includes('Girl') || voice.name.includes('Woman'))
+        ) || voices.find(voice => 
+          voice.name.includes('Female') && (voice.name.includes('Google') || voice.name.includes('UK'))
+        );
+        utterance.lang = 'en-IN';
+      } else if (language === 'hindi') {
+        // Hindi voice selection - try multiple approaches
+        selectedVoice = voices.find(voice => 
+          voice.lang.toLowerCase().includes('hi') && 
+          (voice.name.includes('Female') || voice.name.includes('Girl') || voice.name.includes('Woman'))
+        ) || voices.find(voice => 
+          voice.lang.toLowerCase().includes('hi')
+        ) || voices.find(voice => 
+          (voice.name.includes('India') || voice.name.includes('Indian')) && 
+          (voice.name.includes('Female') || voice.name.includes('Girl') || voice.name.includes('Woman'))
+        );
+        utterance.lang = 'hi-IN';
+      } else if (language === 'marathi') {
+        // Marathi voice selection - try multiple approaches
+        selectedVoice = voices.find(voice => 
+          voice.lang.toLowerCase().includes('mr') && 
+          (voice.name.includes('Female') || voice.name.includes('Girl') || voice.name.includes('Woman'))
+        ) || voices.find(voice => 
+          voice.lang.toLowerCase().includes('mr')
+        ) || voices.find(voice => 
+          (voice.name.includes('India') || voice.name.includes('Indian')) && 
+          (voice.name.includes('Female') || voice.name.includes('Girl') || voice.name.includes('Woman'))
+        );
+        utterance.lang = 'mr-IN';
       }
       
       if (selectedVoice) {
         utterance.voice = selectedVoice;
-        utterance.lang = 'en-IN';
         console.log('Selected voice:', selectedVoice.name, 'for language:', language, 'lang:', utterance.lang);
       } else {
-        utterance.lang = 'en-IN';
         console.log('No suitable voice found for language:', language, 'Available voices:', voices.length);
-        // For Hindi/Marathi, don't use browser TTS if no suitable voice
+        // For Hindi/Marathi, try to use any available voice as fallback
         if (language === 'hindi' || language === 'marathi') {
-          console.log('Skipping browser TTS for', language, '- no suitable voice available');
-          utteranceRef.current = null;
-          return;
+          const fallbackVoice = voices.find(voice => 
+            voice.name.includes('Female') || voice.name.includes('Girl') || voice.name.includes('Woman')
+          );
+          if (fallbackVoice) {
+            utterance.voice = fallbackVoice;
+            console.log('Using fallback voice:', fallbackVoice.name, 'for', language);
+          } else {
+            console.log('No fallback voice available for', language);
+            utteranceRef.current = null;
+            return;
+          }
         }
       }
       
