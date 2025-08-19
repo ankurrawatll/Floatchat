@@ -30,6 +30,7 @@ export default function ChatbotWidget() {
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef({ startX: 0, startY: 0, startLeft: 0, startTop: 0 });
+  const chatWindowRef = useRef<HTMLDivElement>(null);
 
   const stopSpeaking = () => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -311,8 +312,12 @@ export default function ChatbotWidget() {
     
     const dx = e.clientX - dragRef.current.startX;
     const dy = e.clientY - dragRef.current.startY;
-    const newX = Math.max(0, Math.min(window.innerWidth - 448, dragRef.current.startLeft + dx));
-    const newY = Math.max(0, Math.min(window.innerHeight - 544, dragRef.current.startTop + dy));
+    const defaultW = 448; // fallback
+    const defaultH = 544; // fallback
+    const cw = chatWindowRef.current?.offsetWidth || defaultW;
+    const ch = chatWindowRef.current?.offsetHeight || defaultH;
+    const newX = Math.max(0, Math.min(window.innerWidth - cw, dragRef.current.startLeft + dx));
+    const newY = Math.max(0, Math.min(window.innerHeight - ch, dragRef.current.startTop + dy));
     
     setPosition({ x: newX, y: newY });
   };
@@ -358,7 +363,7 @@ export default function ChatbotWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="absolute bottom-20 right-0 w-[28rem] h-[34rem] bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 overflow-hidden chat-content">
+        <div ref={chatWindowRef} className="absolute bottom-20 right-0 w-[90vw] sm:w-[28rem] h-[70vh] sm:h-[34rem] bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 overflow-hidden chat-content">
           {/* Chat Header */}
           <div className="bg-gradient-to-r from-saffron-400 to-saffron-500 p-4 flex items-center justify-between text-white">
             <div className="flex items-center space-x-2">
@@ -405,7 +410,7 @@ export default function ChatbotWidget() {
           </div>
 
           {/* Body */}
-          <div className="flex-1 p-4 space-y-3 overflow-y-auto max-h-[24rem] bg-gradient-to-b from-cream-50 to-white">
+          <div className="flex-1 p-4 space-y-3 overflow-y-auto max-h-[52vh] sm:max-h-[24rem] bg-gradient-to-b from-cream-50 to-white">
             {mode === 'assistant' ? (
               <>
                 {messages.map((message, index) => (
@@ -538,6 +543,16 @@ export default function ChatbotWidget() {
               </div>
             )}
           </div>
+          {isLoading && (
+            <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center z-20">
+              <div className="flex items-center gap-2 text-forest-700 text-sm">
+                <div className="w-3 h-3 bg-saffron-500 rounded-full animate-bounce"></div>
+                <div className="w-3 h-3 bg-saffron-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-3 h-3 bg-saffron-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <span>{mode === 'assistant' ? 'Thinking...' : 'Generating quiz...'}</span>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
