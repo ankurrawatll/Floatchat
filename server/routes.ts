@@ -153,6 +153,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         reply = response.text || reply;
       }
+
+      // Final enforcement: if still not in target script for hi/mr, rewrite the answer in target language only
+      const stillWrongScript = (language === 'hindi' || language === 'marathi') && !(/[\u0900-\u097F]/.test(reply));
+      if (stillWrongScript) {
+        const rewrite = await ai.models.generateContent({
+          model: "gemini-2.0-flash",
+          contents: (language === 'hindi')
+            ? `नीचे दिए गए उत्तर को बिना किसी भूमिका या अतिरिक्त वाक्य के, सख्ती से हिंदी में दुबारा लिखें। केवल साफ़ सादा टेक्स्ट लौटाएं।\n\n${reply}`
+            : `खाली दिलेल्या उत्तराला कोणतीही प्रस्तावना किंवा अतिरिक्त वाक्यांश न देता, फक्त मराठीत पुन्हा लिहा. फक्त स्वच्छ साधा मजकूर परत करा.\n\n${reply}`
+        });
+        const rewritten = rewrite.text || '';
+        if (/[\u0900-\u097F]/.test(rewritten)) {
+          reply = rewritten;
+        }
+      }
       
       // Clean up any remaining asterisks and formatting characters
       reply = reply.replace(/\*\*/g, '').replace(/\*/g, '').replace(/\*\s*\*/g, '');
