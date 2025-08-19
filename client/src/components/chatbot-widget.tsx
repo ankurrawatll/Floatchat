@@ -452,139 +452,144 @@ export default function ChatbotWidget() {
           </div>
 
           {/* Body */}
-          <div className="flex-1 p-4 space-y-3 overflow-y-auto max-h-[52vh] sm:max-h-[24rem] bg-gradient-to-b from-cream-50 to-white">
-            {mode === 'assistant' ? (
-              <>
-                {messages.map((message, index) => (
-                  <div key={index} className={`flex ${message.sender === 'user' ? 'justify-end' : 'items-start space-x-2'}`}>
-                    {message.sender === 'bot' && (
+          <div className="flex-1 flex flex-col">
+            {/* Messages Area */}
+            <div className="flex-1 p-4 space-y-3 overflow-y-auto max-h-[52vh] sm:max-h-[24rem] bg-gradient-to-b from-cream-50 to-white">
+              {mode === 'assistant' ? (
+                <>
+                  {messages.map((message, index) => (
+                    <div key={index} className={`flex ${message.sender === 'user' ? 'justify-end' : 'items-start space-x-2'}`}>
+                      {message.sender === 'bot' && (
+                        <div className="w-8 h-8 bg-saffron-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <i className="fas fa-robot text-saffron-500 text-xs"></i>
+                        </div>
+                      )}
+                      <div className={`rounded-xl p-3 max-w-64 ${
+                        message.sender === 'bot' 
+                          ? 'bg-white shadow-sm border border-cream-200' 
+                          : 'bg-saffron-400 text-white'
+                      }`}>
+                        <p className="text-sm">{message.text}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {isLoading && (
+                    <div className="flex items-start space-x-2">
                       <div className="w-8 h-8 bg-saffron-100 rounded-full flex items-center justify-center flex-shrink-0">
                         <i className="fas fa-robot text-saffron-500 text-xs"></i>
                       </div>
-                    )}
-                    <div className={`rounded-xl p-3 max-w-64 ${
-                      message.sender === 'bot' 
-                        ? 'bg-white shadow-sm border border-cream-200' 
-                        : 'bg-saffron-400 text-white'
-                    }`}>
-                      <p className="text-sm">{message.text}</p>
-                    </div>
-                  </div>
-                ))}
-                {isLoading && (
-                  <div className="flex items-start space-x-2">
-                    <div className="w-8 h-8 bg-saffron-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <i className="fas fa-robot text-saffron-500 text-xs"></i>
-                    </div>
-                    <div className="bg-white rounded-xl p-3 shadow-sm border border-cream-200">
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-saffron-400 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-saffron-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-2 h-2 bg-saffron-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                {/* Quiz Controls */}
-                <div className="flex items-center gap-2">
-                  <select value={quizLang} onChange={(e)=> setQuizLang(e.target.value as Language)} className="border rounded px-2 py-1 text-sm">
-                    <option value="english">English</option>
-                    <option value="hindi">हिंदी</option>
-                    <option value="marathi">मराठी</option>
-                  </select>
-                  <select value={quizDifficulty} onChange={(e)=> setQuizDifficulty(e.target.value as any)} className="border rounded px-2 py-1 text-sm">
-                    <option value="easy">Easy</option>
-                    <option value="medium">Medium</option>
-                    <option value="hard">Hard</option>
-                  </select>
-                  <input value={quizTopic} onChange={(e)=> setQuizTopic(e.target.value)} placeholder="What type question you want to practise?" className="flex-1 border rounded px-2 py-1 text-sm" />
-                  <button onClick={async ()=> { await generateQuiz(); }} className="px-3 py-1 rounded bg-saffron-400 text-white text-xs hover:bg-saffron-500">Generate</button>
-                </div>
-
-                {/* Quiz Body */}
-                {quiz?.questions?.map((q, idx) => (
-                  <div key={idx} className="border rounded-lg p-3 bg-white">
-                    <div className="font-medium text-sm mb-2">{idx+1}. {q.q}</div>
-                    <div className="grid gap-2">
-                      {q.options.map((opt, oi) => (
-                        <label key={oi} className={`flex items-center gap-2 text-sm border rounded px-2 py-1 cursor-pointer ${selectedAnswers[idx] === oi ? 'bg-saffron-50 border-saffron-300' : 'border-cream-200'}`}>
-                          <input type="radio" name={`q-${idx}`} checked={selectedAnswers[idx] === oi} onChange={()=> {
-                            const next = [...selectedAnswers];
-                            next[idx] = oi;
-                            setSelectedAnswers(next);
-                          }} />
-                          <span>{opt}</span>
-                        </label>
-                      ))}
-                    </div>
-                    {showResults && (
-                      <div className="mt-2 text-xs">
-                        <div className={selectedAnswers[idx] === q.answerIndex ? 'text-green-600' : 'text-red-600'}>
-                          {selectedAnswers[idx] === q.answerIndex ? 'Correct' : 'Incorrect'}
+                      <div className="bg-white rounded-xl p-3 shadow-sm border border-cream-200">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-saffron-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-saffron-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2 h-2 bg-saffron-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                         </div>
-                        <div className="text-forest-700 mt-1">{q.explanation}</div>
                       </div>
-                    )}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {/* Quiz Controls */}
+                  <div className="flex items-center gap-2">
+                    <select value={quizLang} onChange={(e)=> setQuizLang(e.target.value as Language)} className="border rounded px-2 py-1 text-sm">
+                      <option value="english">English</option>
+                      <option value="hindi">हिंदी</option>
+                      <option value="marathi">मराठी</option>
+                    </select>
+                    <select value={quizDifficulty} onChange={(e)=> setQuizDifficulty(e.target.value as any)} className="border rounded px-2 py-1 text-sm">
+                      <option value="easy">Easy</option>
+                      <option value="medium">Medium</option>
+                      <option value="hard">Hard</option>
+                    </select>
+                    <input value={quizTopic} onChange={(e)=> setQuizTopic(e.target.value)} placeholder="What type question you want to practise?" className="flex-1 border rounded px-2 py-1 text-sm" />
+                    <button onClick={async ()=> { await generateQuiz(); }} className="px-3 py-1 rounded bg-saffron-400 text-white text-xs hover:bg-saffron-500">Generate</button>
                   </div>
-                ))}
 
-                {quiz && (
-                  <div className="flex gap-2">
-                    <button onClick={()=> setShowResults(true)} className="px-3 py-1 rounded bg-forest-500 text-white text-xs hover:bg-forest-600">Check answers</button>
-                    <button onClick={()=> { setQuiz(null); setSelectedAnswers([]); setShowResults(false); }} className="px-3 py-1 rounded bg-gray-200 text-xs">Clear</button>
+                  {/* Quiz Body */}
+                  {quiz?.questions?.map((q, idx) => (
+                    <div key={idx} className="border rounded-lg p-3 bg-white">
+                      <div className="font-medium text-sm mb-2">{idx+1}. {q.q}</div>
+                      <div className="grid gap-2">
+                        {q.options.map((opt, oi) => (
+                          <label key={oi} className={`flex items-center gap-2 text-sm border rounded px-2 py-1 cursor-pointer ${selectedAnswers[idx] === oi ? 'bg-saffron-50 border-saffron-300' : 'border-cream-200'}`}>
+                            <input type="radio" name={`q-${idx}`} checked={selectedAnswers[idx] === oi} onChange={()=> {
+                              const next = [...selectedAnswers];
+                              next[idx] = oi;
+                              setSelectedAnswers(next);
+                            }} />
+                            <span>{opt}</span>
+                          </label>
+                        ))}
+                      </div>
+                      {showResults && (
+                        <div className="mt-2 text-xs">
+                          <div className={selectedAnswers[idx] === q.answerIndex ? 'text-green-600' : 'text-red-600'}>
+                            {selectedAnswers[idx] === q.answerIndex ? 'Correct' : 'Incorrect'}
+                          </div>
+                          <div className="text-forest-700 mt-1">{q.explanation}</div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {quiz && (
+                    <div className="flex gap-2">
+                      <button onClick={()=> setShowResults(true)} className="px-3 py-1 rounded bg-forest-500 text-white text-xs hover:bg-forest-600">Check answers</button>
+                      <button onClick={()=> { setQuiz(null); setSelectedAnswers([]); setShowResults(false); }} className="px-3 py-1 rounded bg-gray-200 text-xs">Clear</button>
+                    </div>
+                  )}
+                </>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input Section - Now properly positioned at bottom */}
+            <div className="p-4 bg-white border-t border-cream-200 mt-auto">
+              {mode === 'assistant' ? (
+                <div className="flex items-center space-x-2">
+                  <div className="flex-1 relative">
+                    <input 
+                      type="text" 
+                      value={currentMessage}
+                      onChange={(e) => setCurrentMessage(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                      placeholder="Type your question..." 
+                      className="w-full px-4 py-2 rounded-xl border border-cream-300 focus:outline-none focus:ring-2 focus:ring-saffron-400 focus:border-transparent text-sm"
+                      data-testid="chat-input"
+                    />
+                    <button 
+                      onClick={startVoiceRecording}
+                      className={`absolute right-2 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center hover:bg-cream-100 rounded-full transition-colors ${isListening ? 'text-red-500' : 'text-saffron-500'}`}
+                      data-testid="voice-button"
+                    >
+                      <i className={`fas ${isListening ? 'fa-stop' : 'fa-microphone'} text-xs`}></i>
+                    </button>
                   </div>
-                )}
-              </>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Footer */}
-          <div className="p-4 bg-white border-t border-cream-200">
-            {mode === 'assistant' ? (
-              <div className="flex items-center space-x-2">
-                <div className="flex-1 relative">
-                  <input 
-                    type="text" 
-                    value={currentMessage}
-                    onChange={(e) => setCurrentMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                    placeholder="Type your question..." 
-                    className="w-full px-4 py-2 rounded-xl border border-cream-300 focus:outline-none focus:ring-2 focus:ring-saffron-400 focus:border-transparent text-sm"
-                    data-testid="chat-input"
-                  />
                   <button 
-                    onClick={startVoiceRecording}
-                    className={`absolute right-2 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center hover:bg-cream-100 rounded-full transition-colors ${isListening ? 'text-red-500' : 'text-saffron-500'}`}
-                    data-testid="voice-button"
+                    onClick={() => handleSendMessage()}
+                    disabled={isLoading}
+                    className="w-8 h-8 bg-saffron-400 hover:bg-saffron-500 disabled:opacity-50 rounded-full flex items-center justify-center transition-colors"
+                    data-testid="send-button"
                   >
-                    <i className={`fas ${isListening ? 'fa-stop' : 'fa-microphone'} text-xs`}></i>
+                    <i className="fas fa-paper-plane text-white text-xs"></i>
                   </button>
                 </div>
-                <button 
-                  onClick={() => handleSendMessage()}
-                  disabled={isLoading}
-                  className="w-8 h-8 bg-saffron-400 hover:bg-saffron-500 disabled:opacity-50 rounded-full flex items-center justify-center transition-colors"
-                  data-testid="send-button"
-                >
-                  <i className="fas fa-paper-plane text-white text-xs"></i>
-                </button>
-              </div>
-            ) : (
-              <div className="text-xs text-forest-700">Generate a quiz above and select answers. Click "Check answers" to see results.</div>
-            )}
-            
-            {/* Voice Recording Indicator */}
-            {mode === 'assistant' && isListening && (
-              <div className="mt-2 flex items-center justify-center space-x-2 text-saffron-500">
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                <span className="text-xs">Listening...</span>
-              </div>
-            )}
+              ) : (
+                <div className="text-xs text-forest-700">Generate a quiz above and select answers. Click "Check answers" to see results.</div>
+              )}
+              
+              {/* Voice Recording Indicator */}
+              {mode === 'assistant' && isListening && (
+                <div className="mt-2 flex items-center justify-center space-x-2 text-saffron-500">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs">Listening...</span>
+                </div>
+              )}
+            </div>
           </div>
+
+
           {isLoading && (
             <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center z-20">
               <div className="flex items-center gap-2 text-forest-700 text-sm">
