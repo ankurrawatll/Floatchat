@@ -266,7 +266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // TTS endpoint using gTTS
+  // TTS endpoint using Google Translate TTS API
   app.post("/api/tts", async (req, res) => {
     try {
       const { text, lang } = req.body;
@@ -277,32 +277,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('TTS request:', { text: text.substring(0, 50) + '...', lang });
 
-      // Import gTTS dynamically
-      const gTTS = (await import('gtts')).default;
+      // Use Google Translate TTS API directly
+      const encodedText = encodeURIComponent(text);
+      const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=${lang}&client=tw-ob`;
       
-      // Create gTTS instance with proper language code
-      const gtts = new gTTS(text, lang);
+      console.log('Fetching TTS from:', ttsUrl);
+
+      // Fetch audio from Google TTS
+      const response = await fetch(ttsUrl);
       
-      // Generate audio buffer
-      const audioBuffer = await new Promise<Buffer>((resolve, reject) => {
-        gtts.getBuffer((err: any, buffer: Buffer) => {
-          if (err) {
-            console.error('gTTS buffer error:', err);
-            reject(err);
-          } else {
-            console.log('gTTS buffer generated, size:', buffer.length);
-            resolve(buffer);
-          }
-        });
-      });
+      if (!response.ok) {
+        throw new Error(`Google TTS API responded with status: ${response.status}`);
+      }
+
+      const audioBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(audioBuffer);
+      
+      console.log('TTS audio generated, size:', buffer.length);
 
       // Set response headers
       res.setHeader('Content-Type', 'audio/mpeg');
-      res.setHeader('Content-Length', audioBuffer.length);
+      res.setHeader('Content-Length', buffer.length);
       res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
       
       // Send audio buffer
-      res.send(audioBuffer);
+      res.send(buffer);
       
     } catch (error) {
       console.error('TTS API error:', error);

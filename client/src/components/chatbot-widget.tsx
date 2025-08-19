@@ -202,6 +202,11 @@ export default function ChatbotWidget() {
         return;
       }
       
+      // Resume speech synthesis if it was paused (required for some browsers)
+      if (speechSynthesis.paused) {
+        speechSynthesis.resume();
+      }
+      
       const utterance = new SpeechSynthesisUtterance(text);
       
       // Configure voice based on language
@@ -238,6 +243,14 @@ export default function ChatbotWidget() {
       };
       utterance.onerror = (event) => { 
         console.error('Browser TTS error for language:', language, event);
+        // Handle specific error types
+        if (event.error === 'not-allowed') {
+          console.log('TTS not allowed - user may need to interact with page first');
+        } else if (event.error === 'network') {
+          console.log('TTS network error');
+        } else if (event.error === 'synthesis-failed') {
+          console.log('TTS synthesis failed');
+        }
         utteranceRef.current = null; 
       };
       utteranceRef.current = utterance;
