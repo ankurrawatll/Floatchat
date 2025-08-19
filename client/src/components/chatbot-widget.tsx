@@ -139,70 +139,35 @@ export default function ChatbotWidget() {
       const voices = voicesRef.current && voicesRef.current.length > 0 ? voicesRef.current : speechSynthesis.getVoices();
       let selectedVoice = null;
       
-      // Debug: Log all available voices for Marathi
-      if (language === 'marathi') {
-        console.log('Available voices for Marathi:', voices.map(v => ({ name: v.name, lang: v.lang, default: v.default })));
-      }
-      
       if (language === 'hindi' || language === 'marathi') {
-        // Priority 1: Look for matching language female voice
+        // Use the same voice selection logic for both Hindi and Marathi
+        // Priority 1: Look for Indian female voice
         selectedVoice = voices.find(voice => 
-          ((language === 'hindi' && (voice.lang.toLowerCase().includes('hi') || voice.name.toLowerCase().includes('hindi')))
-           || (language === 'marathi' && (voice.lang.toLowerCase().includes('mr') || voice.name.toLowerCase().includes('marathi')))) &&
+          (voice.name.includes('India') || voice.name.includes('Indian')) &&
           (voice.name.includes('Female') || voice.name.includes('Girl') || voice.name.includes('Woman'))
         );
         
-        // Priority 2: Look for any matching language voice
-        if (!selectedVoice) {
-          selectedVoice = voices.find(voice => 
-            (language === 'hindi' && (voice.lang.toLowerCase().includes('hi') || voice.name.toLowerCase().includes('hindi'))) ||
-            (language === 'marathi' && (voice.lang.toLowerCase().includes('mr') || voice.name.toLowerCase().includes('marathi')))
-          );
-        }
-        
-        // Priority 3: Look for Indian female voice
-        if (!selectedVoice) {
-          selectedVoice = voices.find(voice => 
-            (voice.name.includes('India') || voice.name.includes('Indian')) &&
-            (voice.name.includes('Female') || voice.name.includes('Girl') || voice.name.includes('Woman'))
-          );
-        }
-        
-        // Priority 4: Look for any Indian voice
+        // Priority 2: Look for any Indian voice
         if (!selectedVoice) {
           selectedVoice = voices.find(voice => 
             voice.name.includes('India') || voice.name.includes('Indian')
           );
         }
         
-        // Priority 5: Look for any female voice with Hindi/Marathi language code
+        // Priority 3: Look for any female voice with Hindi language code
         if (!selectedVoice) {
           selectedVoice = voices.find(voice => 
-            (voice.lang.toLowerCase().includes('hi') || voice.lang.toLowerCase().includes('mr')) && 
+            voice.lang.toLowerCase().includes('hi') && 
             (voice.name.includes('Female') || voice.name.includes('Girl') || voice.name.includes('Woman'))
           );
         }
         
-        // Priority 6: Fallback to any Hindi/Marathi language voice
+        // Priority 4: Fallback to any Hindi language voice
         if (!selectedVoice) {
-          selectedVoice = voices.find(voice => voice.lang.toLowerCase().includes('hi') || voice.lang.toLowerCase().includes('mr'));
-        }
-        
-        // Priority 7: For Marathi specifically, try Hindi voices as fallback
-        if (!selectedVoice && language === 'marathi') {
           selectedVoice = voices.find(voice => voice.lang.toLowerCase().includes('hi'));
-          console.log('Marathi fallback to Hindi voice:', selectedVoice?.name);
         }
         
-        // Priority 8: For Marathi, try any Indian voice as final fallback
-        if (!selectedVoice && language === 'marathi') {
-          selectedVoice = voices.find(voice => 
-            voice.name.includes('India') || voice.name.includes('Indian') || voice.lang.toLowerCase().includes('in')
-          );
-          console.log('Marathi fallback to Indian voice:', selectedVoice?.name);
-        }
-        
-        // Priority 9: Fallback to any female voice
+        // Priority 5: Fallback to any female voice
         if (!selectedVoice) {
           selectedVoice = voices.find(voice => 
             voice.name.includes('Female') || voice.name.includes('Girl') || voice.name.includes('Woman')
@@ -237,14 +202,6 @@ export default function ChatbotWidget() {
         utteranceRef.current = null; 
       };
       utteranceRef.current = utterance;
-      
-      // For Marathi, ensure we have a voice selected
-      if (language === 'marathi' && !utterance.voice) {
-        console.warn('No voice selected for Marathi, using system default');
-        // Force speech synthesis to work even without specific voice
-        utterance.lang = 'mr-IN';
-      }
-      
       speechSynthesis.speak(utterance);
       console.log('Started TTS for language:', language, 'text length:', text.length, 'voice:', utterance.voice?.name || 'default');
     }
