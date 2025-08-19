@@ -183,11 +183,13 @@ export default function ChatbotWidget() {
       if (selectedVoice) {
         utterance.voice = selectedVoice;
         // Set proper lang hint to improve TTS voice behavior
-        utterance.lang = language === 'hindi' ? 'hi-IN' : language === 'marathi' ? 'mr-IN' : 'en-IN';
+        // Both Hindi and Marathi use hi-IN for the same voice
+        utterance.lang = (language === 'hindi' || language === 'marathi') ? 'hi-IN' : 'en-IN';
         console.log('Selected voice:', selectedVoice.name, 'for language:', language, 'lang:', utterance.lang);
       } else {
         // Still set a language code so system picks a better fallback
-        utterance.lang = language === 'hindi' ? 'hi-IN' : language === 'marathi' ? 'mr-IN' : 'en-IN';
+        // Both Hindi and Marathi use hi-IN for the same voice
+        utterance.lang = (language === 'hindi' || language === 'marathi') ? 'hi-IN' : 'en-IN';
         console.log('No suitable voice found for language:', language, 'Available voices:', voices.length);
       }
       
