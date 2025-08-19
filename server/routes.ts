@@ -123,10 +123,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Add language directive prefix to the user's content to reduce model drift
       const userPrefix = (language === 'english')
-        ? 'Answer strictly in English: '
+        ? 'Return answer strictly in English. Do not use other languages. Plain text only. Answer: '
         : (language === 'hindi')
-          ? 'कृपया strictly हिंदी में उत्तर दें: '
-          : 'कृपया strictly मराठीत उत्तर द्या: ';
+          ? 'उत्तर सख्ती से हिंदी में दें। किसी अन्य भाषा का प्रयोग न करें। केवल सादा टेक्स्ट। उत्तर: '
+          : 'उत्तर फक्त मराठीत द्या. इतर भाषा वापरू नका. फक्त साधा मजकूर. उत्तर: ';
 
       // Call Gemini API
       let response = await ai.models.generateContent({

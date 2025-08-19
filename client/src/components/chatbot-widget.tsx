@@ -71,8 +71,8 @@ export default function ChatbotWidget() {
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
-      // default recognition language based on current selection
-      recognitionRef.current.lang = currentLanguage === 'hindi' ? 'hi-IN' : currentLanguage === 'marathi' ? 'mr-IN' : 'en-IN';
+      // Always capture STT as-is in English (roman script) to avoid auto-translation and accept Hinglish/English/Marathi typed Latin
+      recognitionRef.current.lang = 'en-IN';
       
       recognitionRef.current.onstart = () => {
         aggressiveStop();
@@ -95,10 +95,10 @@ export default function ChatbotWidget() {
     }
   }, []);
 
-  // Update recognition language when currentLanguage changes
+  // Keep STT fixed to English (en-IN) regardless of tab per requirements
   useEffect(() => {
     if (recognitionRef.current) {
-      recognitionRef.current.lang = currentLanguage === 'hindi' ? 'hi-IN' : currentLanguage === 'marathi' ? 'mr-IN' : 'en-IN';
+      recognitionRef.current.lang = 'en-IN';
     }
   }, [currentLanguage]);
 
@@ -126,6 +126,11 @@ export default function ChatbotWidget() {
 
   const speakText = (text: string, language: Language) => {
     if ('speechSynthesis' in window) {
+      // If voices not yet ready, wait briefly and retry to avoid fallback English voice
+      if (!voicesReady || !voicesRef.current || voicesRef.current.length === 0) {
+        setTimeout(() => speakText(text, language), 150);
+        return;
+      }
       // interrupt any ongoing/queued speech
       stopSpeaking();
       const utterance = new SpeechSynthesisUtterance(text);
