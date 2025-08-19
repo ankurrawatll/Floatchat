@@ -31,6 +31,8 @@ export default function ChatbotWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef({ startX: 0, startY: 0, startLeft: 0, startTop: 0 });
   const chatWindowRef = useRef<HTMLDivElement>(null);
+  const voicesRef = useRef<SpeechSynthesisVoice[] | null>(null);
+  const [voicesReady, setVoicesReady] = useState(false);
 
   const stopSpeaking = () => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -47,6 +49,23 @@ export default function ChatbotWidget() {
 
   // Initialize speech recognition
   useEffect(() => {
+    // Prepare voices
+    const loadVoices = () => {
+      if ('speechSynthesis' in window) {
+        const v = window.speechSynthesis.getVoices();
+        if (v && v.length > 0) {
+          voicesRef.current = v;
+          setVoicesReady(true);
+        }
+      }
+    };
+    if ('speechSynthesis' in window) {
+      loadVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        loadVoices();
+      };
+    }
+
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
@@ -82,15 +101,19 @@ export default function ChatbotWidget() {
   // Initialize with greeting (assistant mode only)
   useEffect(() => {
     if (mode !== 'assistant') return;
+    if (!voicesReady && 'speechSynthesis' in window) {
+      // wait briefly for voices to load to avoid default English voice
+      const t = setTimeout(() => setVoicesReady(true), 200);
+      return () => clearTimeout(t);
+    }
     stopSpeaking();
     setMessages([{
       text: greetings[currentLanguage],
       sender: 'bot',
       timestamp: new Date()
     }]);
-    // Speak greeting
     speakText(greetings[currentLanguage], currentLanguage);
-  }, [currentLanguage, mode]);
+  }, [currentLanguage, mode, voicesReady]);
 
   const speakText = (text: string, language: Language) => {
     if ('speechSynthesis' in window) {
@@ -99,20 +122,22 @@ export default function ChatbotWidget() {
       const utterance = new SpeechSynthesisUtterance(text);
       
       // Configure voice based on language
-      const voices = speechSynthesis.getVoices();
+      const voices = voicesRef.current && voicesRef.current.length > 0 ? voicesRef.current : speechSynthesis.getVoices();
       let selectedVoice = null;
       
       if (language === 'hindi' || language === 'marathi') {
-        // Priority 1: Look for Hindi female voice
+        // Priority 1: Look for matching language female voice
         selectedVoice = voices.find(voice => 
-          (voice.name.includes('Hindi') || voice.lang.includes('hi')) &&
+          ((language === 'hindi' && (voice.lang.toLowerCase().includes('hi') || voice.name.toLowerCase().includes('hindi')))
+           || (language === 'marathi' && (voice.lang.toLowerCase().includes('mr') || voice.name.toLowerCase().includes('marathi')))) &&
           (voice.name.includes('Female') || voice.name.includes('Girl') || voice.name.includes('Woman'))
         );
         
-        // Priority 2: Look for any Hindi voice
+        // Priority 2: Look for any matching language voice
         if (!selectedVoice) {
           selectedVoice = voices.find(voice => 
-            voice.name.includes('Hindi') || voice.lang.includes('hi')
+            (language === 'hindi' && (voice.lang.toLowerCase().includes('hi') || voice.name.toLowerCase().includes('hindi'))) ||
+            (language === 'marathi' && (voice.lang.toLowerCase().includes('mr') || voice.name.toLowerCase().includes('marathi')))
           );
         }
         
@@ -134,14 +159,14 @@ export default function ChatbotWidget() {
         // Priority 5: Look for any female voice with Hindi language code
         if (!selectedVoice) {
           selectedVoice = voices.find(voice => 
-            voice.lang.includes('hi') && 
+            (voice.lang.toLowerCase().includes('hi') || voice.lang.toLowerCase().includes('mr')) && 
             (voice.name.includes('Female') || voice.name.includes('Girl') || voice.name.includes('Woman'))
           );
         }
         
         // Priority 6: Fallback to any Hindi language voice
         if (!selectedVoice) {
-          selectedVoice = voices.find(voice => voice.lang.includes('hi'));
+          selectedVoice = voices.find(voice => voice.lang.toLowerCase().includes('hi') || voice.lang.toLowerCase().includes('mr'));
         }
         
         // Priority 7: Fallback to any female voice
@@ -152,10 +177,9 @@ export default function ChatbotWidget() {
         }
       } else {
         // English voice selection
-        selectedVoice = voices.find(voice => 
-          voice.name.includes('Female') && 
-          (voice.name.includes('Google') || voice.name.includes('UK'))
-        );
+        // Prefer Indian English female voice if available, otherwise previous heuristic
+        selectedVoice = voices.find(voice => (voice.lang.toLowerCase().includes('en-in') || voice.name.includes('India')) && (voice.name.includes('Female') || voice.name.includes('Girl') || voice.name.includes('Woman')))
+          || voices.find(voice => voice.name.includes('Female') && (voice.name.includes('Google') || voice.name.includes('UK')));
       }
       
       if (selectedVoice) {
