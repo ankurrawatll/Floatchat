@@ -74,8 +74,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create language-specific system prompt: helpful assistant, no refusals
       const languagePrompts = {
         english: "You are a helpful assistant. ALWAYS respond only in English. Do not refuse due to topic. Be brief and clear. No disclaimers. No asterisks or formatting characters. Plain text only.",
-        hindi: "आप एक सहायक सहायक हैं। हमेशा केवल हिंदी में जवाब दें। विषय के कारण मना न करें। संक्षिप्त और स्पष्ट उत्तर दें। कोई अस्वीकरण नहीं। कोई विशेष प्रतीक नहीं। केवल सादा टेक्स्ट।",
-        marathi: "आपण एक उपयुक्त सहाय्यक आहात. नेहमी फक्त मराठीत उत्तर द्या. विषयामुळे नकार देऊ नका. संक्षिप्त आणि स्पष्ट उत्तर द्या. कोणतेही अस्वीकरण नाही. कोणतेही विशेष चिन्ह नाही. फक्त साधा मजकूर."
+        hindi: "आप एक सहायक सहायक हैं। हमेशा केवल हिंदी में, देवनागरी लिपि (देवनागरी) में जवाब दें। विषय के कारण मना न करें। संक्षिप्त और स्पष्ट उत्तर दें। कोई अस्वीकरण नहीं। कोई विशेष प्रतीक नहीं। केवल सादा टेक्स्ट।",
+        marathi: "आपण एक उपयुक्त सहाय्यक आहात. नेहमी फक्त मराठीत, देवनागरी लिपीत उत्तर द्या. विषयामुळे नकार देऊ नका. संक्षिप्त आणि स्पष्ट उत्तर द्या. कोणतेही अस्वीकरण नाही. कोणतेही विशेष चिन्ह नाही. फक्त साधा मजकूर."
       };
 
       let systemPrompt = languagePrompts[language as keyof typeof languagePrompts];
@@ -125,8 +125,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userPrefix = (language === 'english')
         ? 'Return answer strictly in English. Do not use other languages. Plain text only. Answer: '
         : (language === 'hindi')
-          ? 'उत्तर सख्ती से हिंदी में दें। किसी अन्य भाषा का प्रयोग न करें। केवल सादा टेक्स्ट। उत्तर: '
-          : 'उत्तर फक्त मराठीत द्या. इतर भाषा वापरू नका. फक्त साधा मजकूर. उत्तर: ';
+          ? 'उत्तर सख्ती से हिंदी (देवनागरी लिपि) में दें। किसी अन्य भाषा/लिपि का प्रयोग न करें। केवल सादा टेक्स्ट। उत्तर: '
+          : 'उत्तर फक्त मराठीत (देवनागरी लिपीत) द्या. इतर भाषा/लिपी वापरू नका. फक्त साधा मजकूर. उत्तर: ';
 
       // Call Gemini API
       let response = await ai.models.generateContent({
@@ -137,13 +137,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         contents: userPrefix + message,
       });
 
-      let reply = response.text || "Sorry, I couldn't generate a response.";
+      let reply = response.text || "";
       // Retry once if the model incorrectly claims English-only or doesn't use Devanagari for hi/mr
+      const asciiCount = (reply.match(/[A-Za-z]/g) || []).length;
+      const devCount = (reply.match(/[\u0900-\u097F]/g) || []).length;
       const needsRetry =
         (language === 'hindi' || language === 'marathi') && (
-          /only respond in English|English only|can only/i.test(reply) ||
-          // basic script heuristic: expect Devanagari characters present
-          !/[\u0900-\u097F]/.test(reply)
+          /only respond in English|English only|can only|cannot provide|unable to fulfill|provide your request in English/i.test(reply) ||
+          devCount === 0 || asciiCount > devCount
         );
       if (needsRetry) {
         response = await ai.models.generateContent({
@@ -160,8 +161,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const rewrite = await ai.models.generateContent({
           model: "gemini-2.0-flash",
           contents: (language === 'hindi')
-            ? `नीचे दिए गए उत्तर को बिना किसी भूमिका या अतिरिक्त वाक्य के, सख्ती से हिंदी में दुबारा लिखें। केवल साफ़ सादा टेक्स्ट लौटाएं।\n\n${reply}`
-            : `खाली दिलेल्या उत्तराला कोणतीही प्रस्तावना किंवा अतिरिक्त वाक्यांश न देता, फक्त मराठीत पुन्हा लिहा. फक्त स्वच्छ साधा मजकूर परत करा.\n\n${reply}`
+            ? `नीचे दिए गए उत्तर को बिना किसी भूमिका या अतिरिक्त वाक्य के, सख्ती से हिंदी में (देवनागरी लिपि) दुबारा लिखें। केवल साफ़ सादा टेक्स्ट लौटाएं।\n\n${reply}`
+            : `खाली दिलेल्या उत्तराला कोणतीही प्रस्तावना किंवा अतिरिक्त वाक्यांश न देता, फक्त मराठीत (देवनागरी लिपीत) पुन्हा लिहा. फक्त स्वच्छ साधा मजकूर परत करा.\n\n${reply}`
         });
         const rewritten = rewrite.text || '';
         if (/[\u0900-\u097F]/.test(rewritten)) {
