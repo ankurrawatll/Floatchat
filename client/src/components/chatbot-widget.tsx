@@ -135,8 +135,30 @@ export default function ChatbotWidget() {
     // interrupt any ongoing/queued speech
     stopSpeaking();
     
-    // Use browser TTS for all languages with improved voice selection
-    speakWithBrowserTTS(text, language);
+    if (language === 'hindi' || language === 'marathi') {
+      speakWithApiTTS(text, language);
+    } else {
+      speakWithBrowserTTS(text, language);
+    }
+  };
+
+  const speakWithApiTTS = async (text: string, language: Language) => {
+    try {
+      const lang = language === 'hindi' ? 'hi' : 'mr';
+      const resp = await fetch(`/api/tts?text=${encodeURIComponent(text)}&lang=${lang}`);
+      if (!resp.ok) throw new Error('TTS request failed');
+      const data = await resp.json();
+      if (!data?.audioUrl) throw new Error('No audioUrl returned');
+      const audio = new Audio(data.audioUrl);
+      audio.onended = () => { utteranceRef.current = null; };
+      audio.onerror = () => { utteranceRef.current = null; };
+      utteranceRef.current = audio;
+      await audio.play();
+    } catch (err) {
+      console.error('API TTS failed', err);
+      // if API TTS fails, do nothing for hi/mr per requirement
+      utteranceRef.current = null;
+    }
   };
 
 

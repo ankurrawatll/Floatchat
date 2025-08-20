@@ -5,6 +5,7 @@ import { GoogleGenAI } from "@google/genai";
 import { insertChatMessageSchema } from "@shared/schema";
 import { z } from "zod";
 import { documentIndexer } from "./documentIndexer";
+import googleTTS from 'google-tts-api';
 
 const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || "";
 console.log('API Key loaded:', apiKey ? 'Yes (length: ' + apiKey.length + ')' : 'No');
@@ -266,40 +267,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // TTS endpoint using ResponsiveVoice API (more reliable)
+  // TTS endpoints using google-tts-api (Google Translate TTS URL generator)
+  app.get("/api/tts", async (req, res) => {
+    try {
+      const text = String(req.query.text || '').trim();
+      let lang = String(req.query.lang || 'hi').trim();
+      if (!text) return res.status(400).json({ error: 'Missing text' });
+      // Normalize language
+      if (lang === 'hindi') lang = 'hi';
+      if (lang === 'marathi') lang = 'mr';
+      if (!['hi','mr','en'].includes(lang)) lang = 'hi';
+
+      console.log('TTS GET request:', { preview: text.slice(0, 40), lang });
+      const audioUrl = googleTTS.getAudioUrl(text, {
+        lang,
+        slow: false,
+        host: 'https://translate.google.com'
+      });
+      return res.json({ audioUrl });
+    } catch (error) {
+      console.error('TTS GET error:', error);
+      return res.status(500).json({ error: 'TTS failed', details: (error as Error).message });
+    }
+  });
+
   app.post("/api/tts", async (req, res) => {
     try {
-      const { text, lang } = req.body;
-      
-      if (!text || !lang) {
-        return res.status(400).json({ error: "Missing text or lang" });
-      }
+      const { text, lang: rawLang } = req.body || {};
+      const textStr = String(text || '').trim();
+      let lang = String(rawLang || 'hi').trim();
+      if (!textStr) return res.status(400).json({ error: 'Missing text' });
+      if (lang === 'hindi') lang = 'hi';
+      if (lang === 'marathi') lang = 'mr';
+      if (!['hi','mr','en'].includes(lang)) lang = 'hi';
 
-      console.log('TTS request:', { text: text.substring(0, 50) + '...', lang });
-
-      // Map language codes to ResponsiveVoice voices
-      const voiceMap: { [key: string]: string } = {
-        'hi': 'hindi female',
-        'mr': 'marathi female', 
-        'en': 'english female'
-      };
-
-      const voice = voiceMap[lang] || 'english female';
-      
-      // For now, return a simple response indicating TTS is not available
-      // This prevents the 500 error and allows the frontend to handle gracefully
-      console.log('TTS not implemented yet - using fallback');
-      
-      res.status(200).json({ 
-        message: "TTS not available", 
-        fallback: true,
-        voice: voice,
-        text: text.substring(0, 100) + '...'
+      console.log('TTS POST request:', { preview: textStr.slice(0, 40), lang });
+      const audioUrl = googleTTS.getAudioUrl(textStr, {
+        lang,
+        slow: false,
+        host: 'https://translate.google.com'
       });
-      
+      return res.json({ audioUrl });
     } catch (error) {
-      console.error('TTS API error:', error);
-      res.status(500).json({ error: "Failed to generate TTS audio", details: error.message });
+      console.error('TTS POST error:', error);
+      return res.status(500).json({ error: 'TTS failed', details: (error as Error).message });
     }
   });
 
