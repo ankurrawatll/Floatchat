@@ -462,7 +462,7 @@ export default function ChatbotWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div ref={chatWindowRef} className="absolute bottom-20 right-0 w-[90vw] sm:w-[28rem] h-[70vh] sm:h-[34rem] bg-black/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-saffron-400/30 overflow-hidden chat-content">
+        <div ref={chatWindowRef} className="absolute bottom-20 right-0 w-[90vw] sm:w-[28rem] h-[70vh] sm:h-[34rem] bg-black/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-saffron-400/30 overflow-hidden chat-content flex flex-col">
           {/* Chat Header */}
           <div className="bg-gradient-to-r from-saffron-400 to-saffron-500 p-4 flex items-center justify-between text-black">
             <div className="flex items-center space-x-2">
@@ -511,7 +511,7 @@ export default function ChatbotWidget() {
           {/* Body */}
           <div className="flex-1 flex flex-col min-h-0">
             {/* Messages Area */}
-            <div className="flex-1 p-4 space-y-3 overflow-y-auto bg-gradient-to-b from-gray-900 to-black min-h-[200px] max-h-[400px] scrollbar-always">
+            <div className="flex-1 p-4 space-y-3 overflow-y-auto bg-gradient-to-b from-gray-900 to-black scrollbar-always min-h-0">
               {mode === 'assistant' ? (
                 <>
                   {/* Welcome message when no messages exist */}

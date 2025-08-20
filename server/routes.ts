@@ -302,16 +302,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!['hi','mr','en'].includes(lang)) lang = 'hi';
 
       console.log('TTS POST request (stream):', { preview: textStr.slice(0, 40), lang });
+
+      // Prefer ElevenLabs for Hindi/Marathi if API key is present
+      const elevenKey = process.env.ELEVENLABS_API_KEY;
+      const elevenVoiceId = process.env.ELEVENLABS_VOICE_ID || '1Z7Y8o9cvUeWq8oLKgMY';
+      if (elevenKey && (lang === 'hi' || lang === 'mr')) {
+        try {
+          const elevenUrl = `https://api.elevenlabs.io/v1/text-to-speech/${elevenVoiceId}`;
+          const elevenResp = await fetch(elevenUrl, {
+            method: 'POST',
+            headers: {
+              'xi-api-key': elevenKey,
+              'Accept': 'audio/mpeg',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              text: textStr,
+              model_id: 'eleven_multilingual_v2',
+              voice_settings: {
+                stability: 0.5,
+                similarity_boost: 0.75,
+                style: 0.4,
+                use_speaker_boost: true
+              }
+            })
+          });
+          if (!elevenResp.ok) {
+            const errTxt = await elevenResp.text().catch(()=> '');
+            console.warn('ElevenLabs TTS failed, falling back to Google TTS:', elevenResp.status, errTxt);
+            throw new Error(`ElevenLabs status ${elevenResp.status}`);
+          }
+          const ab = await elevenResp.arrayBuffer();
+          const buf = Buffer.from(ab);
+          res.setHeader('Content-Type', 'audio/mpeg');
+          res.setHeader('Content-Length', buf.length);
+          res.setHeader('Cache-Control', 'no-store');
+          return res.send(buf);
+        } catch (e) {
+          // fall through to google-tts-api
+        }
+      }
+
+      // Fallback: Google Translate TTS via google-tts-api (server-side fetch)
       const audioUrl = googleTTS.getAudioUrl(textStr, {
         lang,
         slow: false,
         host: 'https://translate.google.com'
       });
-
-      // Fetch the mp3 on the server to avoid CORS issues, then stream to client
       const resp = await fetch(audioUrl, {
         headers: {
-          // Mimic a real browser request
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
           'Accept': 'audio/mpeg,audio/*;q=0.9,*/*;q=0.8',
           'Referer': 'https://translate.google.com/',
