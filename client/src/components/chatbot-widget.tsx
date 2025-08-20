@@ -145,18 +145,21 @@ export default function ChatbotWidget() {
   const speakWithApiTTS = async (text: string, language: Language) => {
     try {
       const lang = language === 'hindi' ? 'hi' : 'mr';
-      const resp = await fetch(`/api/tts?text=${encodeURIComponent(text)}&lang=${lang}`);
+      const resp = await fetch(`/api/tts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, lang })
+      });
       if (!resp.ok) throw new Error('TTS request failed');
-      const data = await resp.json();
-      if (!data?.audioUrl) throw new Error('No audioUrl returned');
-      const audio = new Audio(data.audioUrl);
-      audio.onended = () => { utteranceRef.current = null; };
-      audio.onerror = () => { utteranceRef.current = null; };
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.onended = () => { URL.revokeObjectURL(url); utteranceRef.current = null; };
+      audio.onerror = () => { URL.revokeObjectURL(url); utteranceRef.current = null; };
       utteranceRef.current = audio;
       await audio.play();
     } catch (err) {
       console.error('API TTS failed', err);
-      // if API TTS fails, do nothing for hi/mr per requirement
       utteranceRef.current = null;
     }
   };

@@ -301,13 +301,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (lang === 'marathi') lang = 'mr';
       if (!['hi','mr','en'].includes(lang)) lang = 'hi';
 
-      console.log('TTS POST request:', { preview: textStr.slice(0, 40), lang });
+      console.log('TTS POST request (stream):', { preview: textStr.slice(0, 40), lang });
       const audioUrl = googleTTS.getAudioUrl(textStr, {
         lang,
         slow: false,
         host: 'https://translate.google.com'
       });
-      return res.json({ audioUrl });
+
+      // Fetch the mp3 on the server to avoid CORS issues, then stream to client
+      const resp = await fetch(audioUrl, {
+        headers: {
+          // Mimic a real browser request
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          'Accept': 'audio/mpeg,audio/*;q=0.9,*/*;q=0.8',
+          'Referer': 'https://translate.google.com/',
+          'Origin': 'https://translate.google.com'
+        }
+      });
+      if (!resp.ok) {
+        console.error('Upstream TTS fetch failed', resp.status, await resp.text().catch(()=>''));
+        return res.status(502).json({ error: 'Upstream TTS fetch failed', status: resp.status });
+      }
+      const arrayBuffer = await resp.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      res.setHeader('Content-Type', 'audio/mpeg');
+      res.setHeader('Content-Length', buffer.length);
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      return res.send(buffer);
     } catch (error) {
       console.error('TTS POST error:', error);
       return res.status(500).json({ error: 'TTS failed', details: (error as Error).message });
